@@ -294,7 +294,7 @@ return(list(
   params = c(N = N, GPSZ = GPSZ, RNDS = RNDS,GENS = GENS, V0=V0,
 mutation=mutation,
   B = B,candidate_cost = candidate_cost,noncandidate_punishment = noncandidate_punishment, noncandidate_punishment_cost = noncandidate_punishment_cost,hiL_fraction = hiL_fraction,
-hiL = hiL,	loL =	loL, hiP_fraction=hiP_fraction,hiP=hiP,loP=loP,PLcor=PLcor,leaderlessL = leaderlessL, InvF=InvF,leader_reward=leader_reward,extraction_coefficient = extraction_coefficient,overturn_cost=overturn_cost,
+hiL = hiL,	loL =	loL, hiP_fraction=hiP_fraction,hiP=hiP,loP=loP,PLcor=PLcor,leaderlessL = leaderlessL, InvF=InvF,extraction_coefficient = extraction_coefficient,overturn_cost=overturn_cost,
 overturn_punishment=overturn_punishment,overturn_crit_mass=overturn_crit_mass,mutant_sigma=mutant_sigma,mutation=mutation),
 
 continuous_traits = continuous_traits,
