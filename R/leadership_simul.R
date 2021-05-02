@@ -272,7 +272,7 @@ for (gen in 1:GENS) {
 	    exp_ts[exp_ts[,trait]<trait_options[[trait]][1],trait] <- trait_options[[trait]][1]
 	    
 	  }else {
-	    exp_ts[mutant1s[,trait]==1,trait] <- sapply(exp_ts[mutant1s[,trait]==1,trait], function(x)sample(setdiff(trait_options[[trait]], x)))
+	    exp_ts[mutant1s[,trait]==1,trait] <- sapply(exp_ts[mutant1s[,trait]==1,trait], function(x)sample(setdiff(trait_options[[trait]], x),1))
 	  } 
 	}
 
