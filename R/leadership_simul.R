@@ -197,7 +197,7 @@ for (gen in 1:GENS) {
 		leadPs[leadPs==1] <- hiP
 		leadPs[leadPs==0] <- loP
 		grpP <- rep(0,Ngps)
-		grpE[leaderedgps] <- leadPs
+		grpP[leaderedgps] <- leadPs
 
 		########## Production phase ##########
 		#grpProd <- GPSZ * B * grpL * grpI 
