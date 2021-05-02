@@ -39,7 +39,7 @@ trait_options = list (
   E = c(0,20),		 # The amount extracted by leaders
   O = c(0.5,1.5),  # The ratio of leader to groupmember returns at which you vote to overturn leader
   A = c(0.5,1.5),  # The ratio of leader to groupmember returns at which you choose to abdicate
-  C = c("L","P")
+  C = c("L","P","R")
 ),
 
 # Set the starting values
@@ -156,10 +156,12 @@ for (gen in 1:GENS) {
 		## Repeat for each leaderless groups
 		for (gp in leaderlessgps) { # gp represents the current group having an election
 			
-			# For now, 2 voting strategies: choose randomly between high P or high L folks
+			# For now, 3 voting strategies: choose randomly between everyone (R), high P or high L folks
 			voting_strategy <- sample(names(which.max(table(exp_ts$C[which(gps==gp)]))),1)
 			gp_volunteers <- which(gps==gp & volunteers==1)
-            suitable_volunteers <- which(gps==gp & volunteers==1 & es[,voting_strategy]==1)
+			
+			if(voting_strategy=="R"){ suitable_volunteers <- which(gps==gp & volunteers==1)
+            } else suitable_volunteers <- which(gps==gp & volunteers==1 & es[,voting_strategy]==1)
 			
 			if (length(suitable_volunteers)>0) {
 				gpLdr[gp] <- sample(suitable_volunteers,1)		
