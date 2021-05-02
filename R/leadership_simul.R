@@ -15,8 +15,8 @@ hiL_fraction = 0.5,				        	# The fraction of the population with high leade
 hiL = 2,						        	# The leadership ability of high-ability individuals
 loL = 1,							        # The leadership ability of low-ability individuals
 hiP_fraction = 0.5,					        # The fraction of the population with high leadership ability
-hiP = 10,							        # The productivity of high-productivity individuals
-loP = 3,							        # The productivity of low-productivity individuals
+hiP = 3,							        # The productivity of high-productivity individuals
+loP = 1,							        # The productivity of low-productivity individuals
 PLcor = 0,                                  # The correlation between leadership and productivity
 
 leaderlessL = 0.8,							# Effective leadership ability multiplier in groups without leaders
