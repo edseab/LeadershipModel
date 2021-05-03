@@ -48,7 +48,7 @@ StartingVals = c(1,  # everyone volunteers
                  mean(trait_options$E), #everyone extracts the mean possible value
                  mean(trait_options$O),
                  mean(trait_options$A),
-                 "L"),
+                 "R"),
 continuous_traits = c("V","I","E","O","A") # List of traits that vary continuously rather than categorically
 ) {
 
