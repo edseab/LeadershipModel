@@ -257,6 +257,8 @@ for (gen in 1:GENS) {
 	parents <- sample(1:N, N, replace=T, prob=Vfinal)
 	exp_ts_old <- exp_ts
 	exp_ts <- exp_ts_old[parents,]
+	ts_old <- ts
+	ts <- lapply(ts_old, function(x) x[parents,])
 	colnames(exp_ts) <- Traits
 	
 	# Mutate trait values
