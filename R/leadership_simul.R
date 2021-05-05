@@ -4,7 +4,7 @@ N = 100,									# Size of population
 GPSZ = 5,									# Group size
 RNDS = 10,									# Number of rounds played within a generation
 GENS = 10000, 								# Number of generations
-V0 = 1	,									# Baseline fitness
+V0 = 10	,									# Baseline fitness
 dataheavy = F	,							# Set this to TRUE if you want to save all generations' data, or to FALSE if you just want the end result
 B = 1.3,										# Collective production multiplier
 candidate_cost = 0.1,						# Cost of volunteering to lead
@@ -211,25 +211,31 @@ for (gen in 1:GENS) {
 		grpLeaderbonus <- grpE*extraction_coefficient - grpI*grpP
 		
 		# Subtract cost of volunteering
-		Vs <- Vs - volunteers * candidate_cost
+		VolCost <- - volunteers * candidate_cost
 		
 		# Add individual production
-		Vs <- Vs + loP + es$P*(hiP-loP)
+		IndProd <- loP + es$P*(hiP-loP)
 		
-		#Update Vs
-		Vs <- Vs + grpMemberV[gps]
+		# Calculate round returns
+		RdReturn <- grpMemberV[gps] + VolCost + IndProd
 		if(length(leads)>0){
-		Vs[leads] <- Vs[leads] + grpLeaderbonus[leaderedgps]
+		RdReturn[leads] <- RdReturn[leads] + grpLeaderbonus[leaderedgps]
 		}
-
 		
+		# Update Vs
+		Vs <- Vs + RdReturn
+
 		########## End-of-round phase ##########
 
 		##### Abdicate?
 		
 		# Calculate leader to follower return ratio
-		groupVs <- aggregate(Vs, list(gps),mean)
-		l2f <- Vs[leads]/groupVs$x[leaderedgps]
+		l2f <- NA
+		if(length(leads)>0){
+		groupVs <- aggregate(RdReturn, list(gps),mean)
+		l2f <- RdReturn[leads]/groupVs$x[leaderedgps]
+		}
+		
 		
 		# For groups with leaders whose return ratio is too small, set gpLdr to NA
 		abdicatingdgps <- which(exp_ts$A[leads]>=l2f)
@@ -251,6 +257,7 @@ for (gen in 1:GENS) {
 	
 	#### Reproduce in proportion to payoffs to create the next generation
 	Vtemp <- V0 + Vs
+	Vtemp[Vtemp<0] <- 0
 	Vfinal <- Vtemp / mean(Vtemp)
 	
 	parents <- sample(1:N, N, replace=T, prob=Vfinal)
