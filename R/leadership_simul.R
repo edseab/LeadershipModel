@@ -250,39 +250,34 @@ for (gen in 1:GENS) {
 	} # End of round loop
 	
 	#### Reproduce in proportion to payoffs to create the next generation
-	# exp_ts has the vectors of traits that are getting passed on, and Vs has the fitness
 	Vtemp <- V0 + Vs
 	Vfinal <- Vtemp / mean(Vtemp)
 	
 	parents <- sample(1:N, N, replace=T, prob=Vfinal)
-	exp_ts_old <- exp_ts
-	exp_ts <- exp_ts_old[parents,]
 	ts_old <- ts
 	ts <- lapply(ts_old, function(x) x[parents,])
-	colnames(exp_ts) <- Traits
-	
+    rownames(ts[[1]]) <- rownames(ts[[2]]) <- rownames(ts[[3]]) <- rownames(ts[[4]]) <- 1:N
+
 	# Mutate trait values
-	mutant1s <- matrix(rbinom(n=N*ncol(exp_ts),size=1,prob=mutation),nrow=nrow(exp_ts),ncol=ncol(exp_ts))
-	colnames(mutant1s) <- Traits
+    for (k in names(ts)){
+	   mutant1s <- matrix(rbinom(n=N*ncol(exp_ts),size=1,prob=mutation),nrow=nrow(exp_ts),ncol=ncol(exp_ts))
+	   colnames(mutant1s) <- Traits
 	
-	for(trait in Traits){
-	  if (trait %in% continuous_traits){
-	    exp_ts[,trait] <- as.numeric(exp_ts[,trait]) + mutant1s[,trait]*rnorm(N,0,mutant_sigma)*(trait_options[[trait]][2]-trait_options[[trait]][1])
+	   for(trait in Traits){
+	      if (trait %in% continuous_traits){
+	      ts[[k]][,trait] <- as.numeric(ts[[k]][,trait]) + mutant1s[,trait]*rnorm(N,0,mutant_sigma)*(trait_options[[trait]][2]-trait_options[[trait]][1])
 	  
-	 # Fix traits that go beyond the range  
-	    exp_ts[exp_ts[,trait]>trait_options[[trait]][2],trait] <- trait_options[[trait]][2]
-	    exp_ts[exp_ts[,trait]<trait_options[[trait]][1],trait] <- trait_options[[trait]][1]
+	       # Fix traits that go beyond the range  
+	      ts[[k]][ts[[k]][,trait]>trait_options[[trait]][2],trait] <- trait_options[[trait]][2]
+	      ts[[k]][ts[[k]][,trait]<trait_options[[trait]][1],trait] <- trait_options[[trait]][1]
 	    
-	  }else {
-	    exp_ts[mutant1s[,trait]==1,trait] <- sapply(exp_ts[mutant1s[,trait]==1,trait], function(x)sample(setdiff(trait_options[[trait]], x),1))
-	  } 
-	}
+	      }else {
+	         ts[[k]][mutant1s[,trait]==1,trait] <- sapply(ts[[k]][mutant1s[,trait]==1,trait], function(x)sample(setdiff(trait_options[[trait]], x),1))
+	            } 
+	   }
+    }
 
-	# Redistribute expressed genes to their respective locations
-	for(i in 1:N){
-	  ts[[endow_quads[i]]][i,] <- exp_ts[i,] 
-	}
-
+	
 	########## Record keeping
 	if (dataheavy==T) {
 	report$endows[[gen]] <- endow_quads
