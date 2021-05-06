@@ -313,7 +313,7 @@ for (gen in 1:GENS) {
 	
 	if(!is.na(time_estimate) & (gen==100 | gen %% time_estimate==0)){
 	newtime <- Sys.time()
-timerem <- as.numeric(((newtime - time0)/gen)*(GENS-gen))
+timerem <- as.numeric((difftime(newtime,time0,units="secs")/gen)*(GENS-gen))
 print(paste0("Estimated time remaining: ",trunc(timerem/3600),"h ", trunc((timerem/60) %% 60), "min ", trunc(timerem %% 60), "sec"))
 }	
 	
@@ -332,7 +332,6 @@ trait_options = trait_options,
 StartingVals=StartingVals
 ))
 }
-
 
 
 
