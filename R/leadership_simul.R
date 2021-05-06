@@ -1,4 +1,8 @@
 leadership_simul <- function(
+# Progress visualization
+progress = c("generation","percent","none"), # Set to gen if you want each generation number to be printed, or percent for the % progress
+time_estimate = NA,                          # Set to 1000 if you want an estimate of time remaining every 1000 generations
+
 # PARAMETERS 
 N = 100,									# Size of population
 GPSZ = 5,									# Group size
@@ -52,8 +56,13 @@ StartingVals = c(1,  # everyone volunteers
 continuous_traits = c("V","I","E","O","A") # List of traits that vary continuously rather than categorically
 ) {
 
+if(!is.na(time_estimate)){
+ time0 <- Sys.time() 
+}
 ## ERROR MESSAGES ###
 if("C" %in% continuous_traits) stop ("ERROR: VOTE CHOICE TRAIT CANNOT BE CONTINUOUS")
+if(!is.na(time_estimate) & is.na(as.integer(time_estimate))) stop ("ERROR: time_estimate must be an integer")
+
 
 ##################################################
 # DEFINE TRAITS AND ENDOWMENTS
@@ -288,11 +297,26 @@ for (gen in 1:GENS) {
 	########## Record keeping
 	if (dataheavy==T) {
 	report$endows[[gen]] <- endow_quads
-	report$mutants[[gen]] <- which(mutant1s==1)
-	report$mutant_value[[gen]] <- as.matrix(exp_ts)[which(mutant1s==1)]
 	report$final_rd_l2f[[gen]] <- l2f
-	}
-	print(gen)
+	   for (quad in names(ts)){
+	      for(trait in Traits){
+	         if (trait %in% continuous_traits){ report$trait_means[[quad]][[trait]] <- mean(as.numeric(ts[[quad]][[trait]]))
+		     } else report$trait_means[[quad]][[trait]] <- as.list(prop.table(table(ts[[quad]][[trait]])))
+	     }
+	   }
+	}	
+	
+	### Progress visualization
+	prog <- match.arg(progress)
+	if(prog=="generation") print(gen)
+	if(prog=="percent") progress(gen,GENS)
+	
+	if(!is.na(time_estimate) & (gen==100 | gen %% time_estimate==0)){
+	newtime <- Sys.time()
+timerem <- as.numeric(((newtime - time0)/gen)*(GENS-gen))
+print(paste0("Estimated time remaining: ",trunc(timerem/3600),"h ", trunc((timerem/60) %% 60), "min ", trunc(timerem %% 60), "sec"))
+}	
+	
 } # End of generation loop
 return(list(
   final_traits = ts,
