@@ -1,7 +1,7 @@
 leadership_simul <- function(
 # Progress visualization
-progress = c("generation","percent","none"), # Set to gen if you want each generation number to be printed, or percent for the % progress
-time_estimate = NA,                          # Set to 1000 if you want an estimate of time remaining every 1000 generations
+progress = c("generation","percent","none"),# Set to gen if you want each generation number to be printed, or percent for the % progress
+time_estimate = F,                          # Set to T for an estimate of time remaining every 10%
 
 # PARAMETERS 
 N = 100,									# Size of population
@@ -56,12 +56,11 @@ StartingVals = c(1,  # everyone volunteers
 continuous_traits = c("V","I","E","O","A") # List of traits that vary continuously rather than categorically
 ) {
 
-if(!is.na(time_estimate)){
+if(time_estimate){
  time0 <- Sys.time() 
 }
 ## ERROR MESSAGES ###
 if("C" %in% continuous_traits) stop ("ERROR: VOTE CHOICE TRAIT CANNOT BE CONTINUOUS")
-if(!is.na(time_estimate) & is.na(as.integer(time_estimate))) stop ("ERROR: time_estimate must be an integer")
 
 
 ##################################################
@@ -300,8 +299,10 @@ for (gen in 1:GENS) {
 	report$final_rd_l2f[[gen]] <- l2f
 	   for (quad in names(ts)){
 	      for(trait in Traits){
-	         if (trait %in% continuous_traits){ report$trait_means[[quad]][[trait]] <- mean(as.numeric(ts[[quad]][[trait]]))
-		     } else report$trait_means[[quad]][[trait]] <- as.list(prop.table(table(ts[[quad]][[trait]])))
+	         if (trait %in% continuous_traits){ 
+			 report$trait_means[[quad]][[trait]][gen] <- mean(as.numeric(ts[[quad]][[trait]]))
+		     report$trait_sds[[quad]][[trait]][gen] <- sd(as.numeric(ts[[quad]][[trait]]))
+			 } else report$trait_means[[quad]][[trait]][[gen]] <- as.list(prop.table(table(ts[[quad]][[trait]])))
 	     }
 	   }
 	}	
@@ -311,7 +312,7 @@ for (gen in 1:GENS) {
 	if(prog=="generation") print(gen)
 	if(prog=="percent") progress(gen,GENS)
 	
-	if(!is.na(time_estimate) & (gen==100 | gen %% time_estimate==0)){
+	if(time_estimate & (gen==100 | (gen %% (GENS/10))==0)){
 	newtime <- Sys.time()
 timerem <- as.numeric((difftime(newtime,time0,units="secs")/gen)*(GENS-gen))
 print(paste0("Estimated time remaining: ",trunc(timerem/3600),"h ", trunc((timerem/60) %% 60), "min ", trunc(timerem %% 60), "sec"))
