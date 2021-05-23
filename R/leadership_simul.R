@@ -287,8 +287,9 @@ for (gen in 1:GENS) {
 	      ts[[k]][ts[[k]][,trait]<trait_options[[trait]][1],trait] <- trait_options[[trait]][1]
 	    
 	      }else {
+		  if(length(trait_options[[trait]])>1){
 	         ts[[k]][mutant1s[,trait]==1,trait] <- sapply(ts[[k]][mutant1s[,trait]==1,trait], function(x)sample(setdiff(trait_options[[trait]], x),1))
-	            } 
+	            }} 
 	   }
     }
 
