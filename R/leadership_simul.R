@@ -10,7 +10,7 @@ RNDS = 10,									# Number of rounds played within a generation
 GENS = 10000, 								# Number of generations
 V0 = 10	,									# Baseline fitness
 dataheavy = F	,							# Set this to TRUE if you want to save all generations' data, or to FALSE if you just want the end result
-B = 1.3,										# Collective production multiplier
+B = 3,										# Collective production multiplier
 candidate_cost = 0.1,						# Cost of volunteering to lead
 noncandidate_punishment = 0.1,				# Punishment incurred for not volunteering, when punished
 noncandidate_punishment_cost = 0.1,			# Cost of punishing non-volunteers, when punishing
@@ -23,7 +23,7 @@ hiP = 3,							        # The productivity of high-productivity individuals
 loP = 1,							        # The productivity of low-productivity individuals
 PLcor = 0,                                  # The correlation between leadership and productivity
 
-leaderlessL = 0.8,							# Effective leadership ability multiplier in groups without leaders
+leaderlessL = 0.4,							# Effective leadership ability multiplier in groups without leaders
 
 InvF = function (x) exp(x)/4,					# Returns to investment function										
 prop_invested = 0.8,     # the percent of individual production that group members give to the group
@@ -39,7 +39,7 @@ mutation = 0.01,                    # The probability of mutation
 # For continuous traits this is a range, for categorical a vector of possible options that mutants will pick from randomly
 trait_options = list (
   V = c(0,1),      # The probability of volunteering
-  I = c(0.4,0.7,1),      # The amount invested by leaders
+  I = c(0.7,1),      # The amount invested by leaders
   E = c(0,20),		 # The amount extracted by leaders
   O = c(0.5,1.5),  # The ratio of leader to groupmember returns at which you vote to overturn leader
   A = c(0.5,1.5),  # The ratio of leader to groupmember returns at which you choose to abdicate
