@@ -25,7 +25,7 @@ PLcor = 0,                                  # The correlation between leadership
 
 leaderlessL = 0.4,							# Effective leadership ability multiplier in groups without leaders
 
-InvF = function (x) exp(x)/4,					# Returns to investment function										
+InvF = function (x) exp(x/4),					# Returns to investment function										
 prop_invested = 0.8,     # the percent of individual production that group members give to the group
 extraction_coefficient = 0.9,					# If less than 1, resources are devalued when they're extracted
 overturn_cost = 0.5,						# The cost of overturning a leader 
