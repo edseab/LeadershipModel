@@ -10,23 +10,22 @@ RNDS = 10,									# Number of rounds played within a generation
 GENS = 10000, 								# Number of generations
 V0 = 10	,									# Baseline fitness
 dataheavy = F	,							# Set this to TRUE if you want to save all generations' data, or to FALSE if you just want the end result
-B = 3,										# Collective production multiplier
 candidate_cost = 0.1,						# Cost of volunteering to lead
 noncandidate_punishment = 0.1,				# Punishment incurred for not volunteering, when punished
 noncandidate_punishment_cost = 0.1,			# Cost of punishing non-volunteers, when punishing
 
 hiL_fraction = 0.5,				        	# The fraction of the population with high leadership ability
 hiL = 2,						        	# The leadership ability of high-ability individuals
-loL = 1,							        # The leadership ability of low-ability individuals
+loL = 1.5,							        # The leadership ability of low-ability individuals
 hiP_fraction = 0.5,					        # The fraction of the population with high leadership ability
 hiP = 3,							        # The productivity of high-productivity individuals
 loP = 1,							        # The productivity of low-productivity individuals
 PLcor = 0,                                  # The correlation between leadership and productivity
 
-leaderlessL = 0.4,							# Effective leadership ability multiplier in groups without leaders
+leaderlessL = 0.6,							# Effective leadership ability multiplier in groups without leaders
 
-InvF = function (x) exp(x/4),					# Returns to investment function										
-prop_invested = 0.8,     # the percent of individual production that group members give to the group
+Lcost = 0.2,                                # Baseline cost of leadership
+
 extraction_coefficient = 0.9,					# If less than 1, resources are devalued when they're extracted
 overturn_cost = 0.5,						# The cost of overturning a leader 
 overturn_punishment = 2,                  # The extra punishment leaders get when they are overturned
@@ -39,7 +38,7 @@ mutation = 0.01,                    # The probability of mutation
 # For continuous traits this is a range, for categorical a vector of possible options that mutants will pick from randomly
 trait_options = list (
   V = c(0,1),      # The probability of volunteering
-  I = c(0.7,1),      # The amount invested by leaders
+  I = c(0.4,1),      # The amount invested by leaders
   E = c(0,20),		 # The amount extracted by leaders
   O = c(0.5,1.5),  # The ratio of leader to groupmember returns at which you vote to overturn leader
   A = c(0.5,1.5),  # The ratio of leader to groupmember returns at which you choose to abdicate
@@ -210,13 +209,10 @@ for (gen in 1:GENS) {
 		grpP[leaderedgps] <- leadPs
 
 		########## Production phase ##########
-		#grpProd <- GPSZ * B * grpL * grpI 
-		#grpMemberV <- grpProd / GPSZ - grpE / (GPSZ - 1)
-		#grpLeaderbonus <- grpE + grpE / (GPSZ - 1) # this can't be right?
-		
-		grpProd <- GPSZ * B * grpL * InvF(grpI*grpP) - grpE
-		grpMemberV <- grpProd / GPSZ
-		grpLeaderbonus <- grpE*extraction_coefficient - grpI*grpP
+
+		grpProd <- (GPSZ * grpL * grpI) 
+		grpMemberV <- (grpProd / GPSZ) - grpE
+		grpLeaderbonus <- grpE*extraction_coefficient - grpI*grpP - Lcost
 		
 		# Subtract cost of volunteering
 		VolCost <- - volunteers * candidate_cost
