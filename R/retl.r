@@ -3,7 +3,7 @@ retl <- function(px,pavg,grpsz=5, L=3,LL=0.8, Lavg = 3, P=1, Pavg=1, banned=0,in
 
 p_no_vol <- (1-pavg)^(grpsz-banned-1) # prob that no one else volunteers
 
-p_elected_vol <- sum(dbinom(0:(grpsz-banned-1),(grpsz-banned-1),pavg)*(1/(1:(grpsz-banned)))) #probability of being elected, given volunteering
+p_elected_vol <- sapply(pavg,function(x)sum(dbinom(0:(grpsz-banned-1),(grpsz-banned-1),x)*(1/(1:(grpsz-banned))))) #probability of being elected, given volunteering
 
 L_return_ego <- ((LL + (L-LL)*inv)*grpsz - E)/grpsz # Leadership of ego
 L_return_avg <- ((LL + (Lavg-LL)*inv)*grpsz - Eavg)/grpsz# Expected group Leadership
