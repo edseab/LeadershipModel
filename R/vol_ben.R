@@ -113,7 +113,7 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
       (1-p_elected_vol)*  (L_return_avg-volcost+PHiL)/(
         (1-p_same_group)*other_group_expected_return + 
           p_same_group*((L_return_avg + P_vol_avg - volcost - Lcost - inv*P_vol_avg + Ecoef*E_vol_avg)/(grpsz-1) + 
-		  (volavg*(L_return_avg + Pavg - volcost) + (1-volavg)*(L_return_avg + Pavg))*(grpsz-2)/(grpsz-1))
+		  (volavg*(L_return_avg + Pavg - volcost) + (1-volavg)*(L_return_avg + Pavg))*(grpsz-2)/(grpsz-1)))
 
   if(HiLprop>0)RetVolHiL <- sum(HiLbinom*(RetVolHiL))
   
