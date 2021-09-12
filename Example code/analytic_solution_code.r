@@ -218,7 +218,6 @@ for(i in 1:nrow(fulldb)){
   progress(i, nrow(fulldb), increment=10000)
 }
 sum(is.na(fulldb$equi_volunteering)) # 0
-fulldb$LeaderFollowerRatio <- fulldb$Ldr_return/fulldb$Flwr_return
 write.csv(fulldb,"voluteering_equilibria_homogenous.csv",row.names=F)
 
 
