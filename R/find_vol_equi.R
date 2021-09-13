@@ -11,9 +11,9 @@ find_vol_equi <- function(x,func,search.all=T,returns=F,...){
   args[names(extra_Args)[names(extra_Args) %in% names(as.list(args(func)))]] <- extra_Args[names(extra_Args) %in% names(as.list(args(func)))]
   
   if(search.all){
-  vol_eq <- do.call(uniroot.all,args=c(f=func,interval=list(c(0,1)),args))
+  vol_eq <- do.call(rootSolve::uniroot.all,args=c(f=func,interval=list(c(0,1)),args))
   }else{
-  vol_eq <- tryCatch({do.call(uniroot,args=c(f=func,interval=list(c(0,1)),args))$root},error=function(.)return(c()))
+  vol_eq <- tryCatch({do.call(rootSolve::uniroot,args=c(f=func,interval=list(c(0,1)),args))$root},error=function(.)return(c()))
   }
   
   if (!0 %in% vol_eq & do.call(func,args=c(0,args))<0) vol_eq <- c(0,vol_eq)
