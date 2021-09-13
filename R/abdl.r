@@ -1,4 +1,4 @@
-abdl <- function(pvol,pvolHiL=0,,grpsz=5, L=3,LL=0.8, Lavg = 3, P=1, Pavg=1, inv = 0.6,volcost=0.1, Lcost=0.2, E=0, Eavg=0, Ecoef = 0.9, HiLprop = 0,HiL=4,PHiL= 0.5, Baseline=5){
+abdl <- function(pvol,pvolHiL=0,grpsz=5, L=3,LL=0.8, Lavg = 3, P=1, Pavg=1, inv = 0.6,volcost=0.1, Lcost=0.2, E=0, Eavg=0, Ecoef = 0.9, HiLprop = 0,HiL=4,PHiL= 0.5, Baseline=5){
 
   Lavg <- L*(1-HiLprop)+HiL*HiLprop
   Pavg <- P*(1-HiLprop)+PHiL*HiLprop
