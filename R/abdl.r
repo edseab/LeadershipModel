@@ -22,5 +22,5 @@ LoL_ldr_gone <- (1-pavg)^(grpsz-1)*(LL+P + Baseline) + (1-(1-pavg)^(grpsz-1))*(L
 
 HiL_ldr_adv <- HiL_ldr_stay-HiL_ldr_gone
 LoL_ldr_adv <- LoL_ldr_stay-LoL_ldr_gone
-return(c(HiL=HiL_ldr_adv,LoL=LoL_ldr_adv)
+return(c(HiL=HiL_ldr_adv,LoL=LoL_ldr_adv))
 }
