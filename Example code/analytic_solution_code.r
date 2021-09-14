@@ -2,6 +2,7 @@
 # devtools::install_github("edseab/LeadershipModel")
 library(LeadershipModel)
 library(rootSolve)
+library(RColorBrewer)
 
 # Vary returns to leadership
 plot(seq(0,1,0.1),modl(seq(0,1,0.1),0,L=2,Lavg=2,E=0,Eavg=0),
@@ -202,19 +203,20 @@ fulldb$other_equis <- fulldb$equi_volunteering <- NA
 # Baseline <- 5 # change if needed
 for(i in 1:nrow(fulldb)){
   options <- find_vol_equi(fulldb[i,],vol_ben,returns=T)
-
- fulldb$equi_volunteering[i] <- options$vol_eq[which.max(options$returns)]
+  best_option <- which(options$returns-max(options$returns)<10e-15)[1] # this is because sometimes R will say 2 values are different even when they are not, and that the diff between them is -8.81*e-16
  
- res <- with(fulldb[i,],vol_ben(as.numeric(equi_volunteering),grpsz=grpsz,L=L,LL=LL,P=P,inv=inv,Lcost=Lcost,E=E,Ecoef=Ecoef,volcost=volcost,N=N,dataheavy=T))
-  
- fulldb$effective_E[i] <- res$LoL_effective_E
+  fulldb$equi_volunteering[i] <- options$vol_eq[best_option]
  
- if(length(options)>1) fulldb$other_equis[i] <- paste(options[-which.max(rets)],collapse=";")
-
+  res <- with(fulldb[i,],vol_ben(as.numeric(equi_volunteering),grpsz=grpsz,L=L,LL=LL,P=P,inv=inv,Lcost=Lcost,E=E,Ecoef=Ecoef,volcost=volcost,N=N,dataheavy=T))
+ 
+  fulldb$effective_E[i] <- res$LoL_effective_E
+ 
+  if(length(options)>1) fulldb$other_equis[i] <- paste(options$vol_eq[-best_option],collapse=";")
+ 
   fulldb$Ldr_return[i] <- res$Ldr_return
   fulldb$Flwr_return[i] <- res$Flwr_return
- fulldb$NoLeader_return[i] <- res$NoLdr_return
-   
+  fulldb$NoLeader_return[i] <- res$NoLdr_return
+ 
   progress(i, nrow(fulldb), increment=10000)
 }
 sum(is.na(fulldb$equi_volunteering)) # 0
@@ -247,11 +249,99 @@ table(fulldb$LdrToFollowerOutcome,fulldb$volunteering,fulldb$efficient)
 fulldb$class <- NA
 fulldb$class[which(fulldb$efficient==0 & fulldb$LdrToFollowerOutcome=="Beneficial" & fulldb$volunteering!="none")] <- "Leader selfishness"
 fulldb$class[which(fulldb$efficient==0 & fulldb$volunteering=="none")] <- "NoLdr_inefficient"
-fulldb$class[which(fulldb$efficient==0 & fulldb$volunteering=="rare" & fulldb$LdrToFollowerOutcome=="Equal")] <- "Low useless leadership"
+fulldb$class[which(fulldb$efficient==0 & fulldb$volunteering=="rare" & fulldb$LdrToFollowerOutcome=="Equal")] <- "Equal leadership" # previously "Low useless leadership"
 fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none" & fulldb$LdrToFollowerOutcome=="Equal")] <- "Equal leadership"
 fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering=="none")] <- "NoLdr_costly"
 fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none"& fulldb$LdrToFollowerOutcome=="Costly")] <- "Costly Leadership"
 fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none"& fulldb$LdrToFollowerOutcome=="Beneficial")] <- "Beneficial Leadership"
+
+fulldb$any_vol <- as.numeric(fulldb$equi_volunteering>0)
+mod <- glm(any_vol ~ E + L + P + inv + Ecoef + LL + Lcost + volcost + grpsz + N,data=fulldb,family=binomial)
+
+library(plotyl)
+library(rgl)
+
+selection <- which(fulldb$E==2 & fulldb$inv==0.4 & fulldb$Ecoef==0.9 & fulldb$LL==0.4 & fulldb$Lcost==0.5 & fulldb$volcost==0.5 & fulldb$grpsz==5 & fulldb$N==100)
+
+## create special db just for this graph
+
+graph_db <- expand.grid(P=seq(0,14,0.1),L=seq(0,14,0.1),E=2,
+                      inv=0.4,Ecoef=0.9,LL=0.4,
+                      Lcost=0.5,volcost=0.5,
+                      grpsz=5,N=100)
+graph_db$other_equis <- graph_db$equi_volunteering <- NA
+
+# When does leadership evolve
+Baseline <- 5 # change if needed
+for(i in 1:nrow(graph_db)){
+  options <- find_vol_equi(graph_db[i,],vol_ben,returns=T)
+
+ graph_db$equi_volunteering[i] <- options$vol_eq[which.max(options$returns)]
+ 
+ res <- with(graph_db[i,],vol_ben(as.numeric(equi_volunteering),grpsz=grpsz,L=L,LL=LL,P=P,inv=inv,Lcost=Lcost,E=E,Ecoef=Ecoef,volcost=volcost,N=N,dataheavy=T))
+  
+ graph_db$effective_E[i] <- res$LoL_effective_E
+ 
+ if(length(options)>1) graph_db$other_equis[i] <- paste(options[-which.max(options$returns)],collapse=";")
+
+  graph_db$Ldr_return[i] <- res$Ldr_return
+  graph_db$Flwr_return[i] <- res$Flwr_return
+ graph_db$NoLeader_return[i] <- res$NoLdr_return
+   
+  progress(i, nrow(graph_db), increment=10000)
+}
+graph_db$volunteering <- "none"
+graph_db$volunteering[graph_db$equi_volunteering>0 & graph_db$equi_volunteering<=0.333] <- "rare"
+graph_db$volunteering[graph_db$equi_volunteering>0.333 & graph_db$equi_volunteering<=0.666] <- "common"
+graph_db$volunteering[graph_db$equi_volunteering>0.666 & graph_db$equi_volunteering<1] <- "most"
+graph_db$volunteering[graph_db$equi_volunteering==1] <- "All"
+
+graph_db$Leadered_grp_return <- graph_db$Ldr_return+graph_db$Flwr_return*(graph_db$grpsz-1)
+graph_db$NoLeader_grp_return <- graph_db$NoLeader_return*graph_db$grpsz
+
+graph_db$efficient <- as.numeric(as.numeric(graph_db$Leadered_grp_return)>as.numeric(graph_db$NoLeader_grp_return))
+
+graph_db$LeaderFollowerRatio <- graph_db$Ldr_return/graph_db$Flwr_return
+graph_db$LdrToFollowerOutcome <- "Equal"
+graph_db$LdrToFollowerOutcome[which(graph_db$LeaderFollowerRatio>1)] <- "Beneficial"
+graph_db$LdrToFollowerOutcome[which(graph_db$LeaderFollowerRatio<1)] <- "Costly"
+graph_db$class <- NA
+graph_db$class[which(graph_db$efficient==0 & graph_db$LdrToFollowerOutcome=="Beneficial" & graph_db$volunteering!="none")] <- "Leader selfishness"
+graph_db$class[which(graph_db$efficient==0 & graph_db$volunteering=="none")] <- "NoLdr_inefficient"
+graph_db$class[which(graph_db$efficient==0 & graph_db$volunteering=="rare" & graph_db$LdrToFollowerOutcome=="Equal")] <- "Equal leadership" # previously "Low useless leadership"
+graph_db$class[which(graph_db$efficient==1 & graph_db$volunteering!="none" & graph_db$LdrToFollowerOutcome=="Equal")] <- "Equal leadership"
+graph_db$class[which(graph_db$efficient==1 & graph_db$volunteering=="none")] <- "NoLdr_costly"
+graph_db$class[which(graph_db$efficient==1 & graph_db$volunteering!="none"& graph_db$LdrToFollowerOutcome=="Costly")] <- "Costly Leadership"
+graph_db$class[which(graph_db$efficient==1 & graph_db$volunteering!="none"& graph_db$LdrToFollowerOutcome=="Beneficial")] <- "Beneficial Leadership"
+
+
+surface <- as.matrix(reshape(graph_db[,c("P","L","equi_volunteering")], idvar = "P", timevar = "L", direction = "wide"))[,-1]
+fig <- plot_ly(graph_db, x=~L,y=~P,z=~equi_volunteering, color=~class,type="scatter3d") |>
+			  layout(scene=list(xaxis=list(title="Leadership"),
+			                    yaxis=list(title="Individual Production"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
+
+fig <- plot_ly(z=~surface) |> add_surface()
+
+ff <- as.matrix(reshape(graph_db[,c("P","L","class")], idvar = "P", timevar = "L", direction = "wide"))[,-1]
+ff<-factor(ff, 
+    levels=c(unique(graph_db$class)), 
+    labels=c(unique(graph_db$class)))
+	
+
+fx<-matrix(as.numeric(ff), nrow=sqrt(nrow(graph_db)))
+image(fx,
+    breaks=(1:(nlevels(ff)+1))-.5,
+	col=brewer.pal(nlevels(ff),"Set1"),
+	xlab="Individual productivity",
+	ylab="Leader multiplier",
+	xaxt='n', yaxt='n')
+axis(1, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
+axis(2, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
+
+legend (0.2,0.9,fill=brewer.pal(nlevels(ff),"Set1"),legend=levels(ff),bty='n')
+
+
 ### Now same but with different leadership groups
 
 Espace <- c(0,2,5,10,20)
@@ -282,9 +372,9 @@ for(i in 1:nrow(fulldb2)){
   HiLvol <- 0
   cycle <- 1
   while(HiLvol!=1 & LoLvol!=0 & cycle <20){
-    HiLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,search.all=F)
+    HiLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,search.all=F,Lgroup="HiL")
     if(length(HiLvol)>1) HiLvol <- HiLvol[which.max(find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,returns=T,search.all=F)$returns)]
-    LoLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,search.all=F)
+    LoLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,search.all=F,Lgroup="LoL")
     if(length(LoLvol)>1) LoLvol <- LoLvol[which.max(find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,returns=T,search.all=F)$returns)]
     cycle <- cycle+1
   }
@@ -334,8 +424,3 @@ table(fulldb2$equi_type,fulldb2$efficient)
 fulldb2$LdrToFollowerOutcome <- "Equal"
 fulldb2$LdrToFollowerOutcome[which(fulldb2$Ldr_return>fulldb2$Flwr_return)] <- "Beneficial"
 fulldb2$LdrToFollowerOutcome[which(fulldb2$Ldr_return<fulldb2$Flwr_return)] <- "Costly"
-
-
-### homogeneous leadership case
-
-
