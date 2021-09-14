@@ -1,6 +1,9 @@
-vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100, L = 3, LL=0.8, P=1,inv = 0.6,volcost=0.1, Lcost=0.2, E=0.5, Ecoef = 0.9, HiLprop = 0,HiL=4,PHiL= 0.5, Baseline=5, dataheavy=F){
+vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100, L = 3, LL=0.8, P=1,
+                    inv = 0.6,volcost=0.1, Lcost=0.2, E=0.5, Ecoef = 0.9, HiLprop = 0,HiL=4,PHiL= 0.5,
+					Baseline=5, dataheavy=F, select.best=F){
   
-
+  if(HiLprop==0 & select.best) warning("select.best cannot function if HiLprop==0")
+  
   if (HiLprop>=1) stop ("HiLprop cannot be 1 or higher")
   Lgroup <- match.arg(Lgroup)
   p_same_group <- (grpsz-1)/(N-1)
@@ -38,15 +41,23 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
   if(HiLprop>0){
   p_elected_vol <- sapply(1:(length(HiLprops)),
                 function(x) 1/(1 + sum(dbinom(0:(NLoL[x]),NLoL[x],pvol)*(0:NLoL[x])) + sum(dbinom(0:(NHiL[x]),NHiL[x],pvolHiL)*(0:NHiL[x]))))#probability of being elected, given volunteering
+  if(select.best){
+HiL_elected_vol <- sapply(1:(length(HiLprops)),
+                function(x) 1/(1 + sum(sum(dbinom(0:(NHiL[x]),NHiL[x],pvolHiL)*(0:NHiL[x]))))#Lo leaders are irrelevant here
+LoL_elected_vol <- sapply(1:(length(HiLprops)),
+                function(x) dbinom(0,NHiL[x],pvolHiL)/(1 + sum(dbinom(0:(NLoL[x]),NLoL[x],pvol)*(0:NLoL[x]))))# probability that none of the HiL volunteer * 1 over expected number of LoL volunteers
+
+}  
   }else {
     p_elected_vol <- sapply(pvol,function(x)sum(dbinom(0:(grpsz-1),(grpsz-1),x)*(1/(1:(grpsz)))))
+	HiL_elected_vol <- LoL_elected_vol <- p_elected_vol
   }
   
   
-  other_group_expected_return <- HiLprop*pvolHiL*(p_elected_vol*(HiL_return + PHiL*(1-inv)-volcost-Lcost+Ecoef*EHiL) + (1-p_elected_vol)*(L_return_avg-volcost+PHiL)) +
+  other_group_expected_return <- HiLprop*pvolHiL*(HiL_elected_vol*(HiL_return + PHiL*(1-inv)-volcost-Lcost+Ecoef*EHiL) + (1-HiL_elected_vol)*(L_return_avg-volcost+PHiL)) +
     HiLprop*(1-pvolHiL)*(p_no_vol*(LL+PHiL + Baseline)+(1-p_no_vol)*(L_return_avg+PHiL)) +
     
-    (1-HiLprop)*pvol*(p_elected_vol*(L_return + P*(1-inv)-volcost-Lcost+Ecoef*Eactual) + (1-p_elected_vol)*(L_return_avg-volcost+P)) +
+    (1-HiLprop)*pvol*(LoL_elected_vol*(L_return + P*(1-inv)-volcost-Lcost+Ecoef*Eactual) + (1-LoL_elected_vol)*(L_return_avg-volcost+P)) +
     (1-HiLprop)*(1-pvol)*(p_no_vol*(LL+P + Baseline)+(1-p_no_vol)*(L_return_avg+P))
   
   if(HiLprop>0)other_group_expected_return <- sum(HiLbinom*(other_group_expected_return))
@@ -64,31 +75,37 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
       p_no_vol <- 0.99
       }
     Ldr_return <- HiLVol*(HiL_return + PHiL*(1-inv)-volcost-Lcost+Ecoef*EHiL) + (1-HiLVol)*(L_return + P*(1-inv)-volcost-Lcost+Ecoef*Eactual)
-    Flwr_return <- sum(HiLbinom*(HiLprop*pvolHiL*(1-p_elected_vol)*(L_return_avg-volcost+PHiL) + 
+    Flwr_return <- sum(HiLbinom*(HiLprop*pvolHiL*(1-HiL_elected_vol)*(L_return_avg-volcost+PHiL) + 
           HiLprop*(1-pvolHiL)*(1-p_no_vol)*(L_return_avg+PHiL) +
-      (1-HiLprop)*pvol*(1-p_elected_vol)*(L_return_avg + P - volcost) + 
+      (1-HiLprop)*pvol*(1-LoL_elected_vol)*(L_return_avg + P - volcost) + 
       (1-HiLprop)*(1-pvol)*(1-p_no_vol)*(L_return_avg+P)
-        ))/sum(HiLbinom*(HiLprop*pvolHiL*(1-p_elected_vol)+HiLprop*(1-pvolHiL)*(1-p_no_vol) + (1-HiLprop)*pvol*(1-p_elected_vol)+(1-HiLprop)*(1-pvol)*(1-p_no_vol)))
+        ))/sum(HiLbinom*(HiLprop*pvolHiL*(1-HiL_elected_vol)+HiLprop*(1-pvolHiL)*(1-p_no_vol) + (1-HiLprop)*pvol*(1-LoL_elected_vol)+(1-HiLprop)*(1-pvol)*(1-p_no_vol)))
 
     total_P_avg <- (P*(1-HiLprop)+PHiL*HiLprop)
     total_L_avg <- (L*(1-HiLprop)+HiL*HiLprop)
     total_E_avg <- (Eactual*(1-HiLprop)+EHiL*HiLprop)
     
     NoLdr_return <- total_P_avg + LL + Baseline
+	NoLdr_returnHiL <- PHiL + LL + Baseline
+	NoLdr_returnLoL <- P + LL + Baseline
   
     Rotating_Leader_return <- ((LL+inv*(total_L_avg-LL))*grpsz - total_E_avg*(Ecoef)+grpsz*Baseline + total_P_avg*(grpsz-1+inv) - Lcost)/grpsz
-    pvolHiL <- pvolHiL_save
+    Rotating_Leader_returnHiL <- (HiL_return+Ecoef*EHiL-Lcost + PHiL*inv)/grpsz + (LL+inv*(total_L_avg-LL)-total_E_avg/(grpsz-1) + Baseline + PHiL)*(grpsz-1)/grpsz
+    Rotating_Leader_returnLoL <- (LoL_return+Ecoef*E-Lcost + P*inv)/grpsz + (LL+inv*(total_L_avg-LL)-total_E_avg/(grpsz-1) + Baseline + P)*(grpsz-1)/grpsz
+    
+	
+	pvolHiL <- pvolHiL_save
     pvol <- pvol_save
     p_no_vol <- p_no_vol_save
     }
 
   if (Lgroup %in% c("LoL","Both")){
   # returns to volunteering
-  RetVol <- p_elected_vol*(L_return + P*(1-inv)-volcost-Lcost+Ecoef*Eactual)/(
+  RetVol <- LoL_elected_vol*(L_return + P*(1-inv)-volcost-Lcost+Ecoef*Eactual)/(
                 (1-p_same_group)*other_group_expected_return+
 				p_same_group*(volavg*(L_return_avg + Pavg - volcost) + (1-volavg)*(L_return_avg + Pavg)))  + 
       
-  (1-p_elected_vol)*  (L_return_avg-volcost+P)/(
+  (1-LoL_elected_vol)*  (L_return_avg-volcost+P)/(
     (1-p_same_group)*other_group_expected_return + 
       p_same_group*((L_return_avg + P_vol_avg - volcost - Lcost - inv*P_vol_avg + Ecoef*E_vol_avg)/(grpsz-1) + 
                                           ((volavg*(L_return_avg + Pavg - volcost) + (1-volavg)*(L_return_avg + Pavg))*(grpsz-2)/(grpsz-1))))
@@ -107,10 +124,10 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
   
   if (Lgroup %in% c("HiL","Both")){
   # returns to volunteering
-  RetVolHiL <- p_elected_vol*(HiL_return + PHiL*(1-inv)-volcost-Lcost+Ecoef*EHiL)/((1-p_same_group)*other_group_expected_return +
+  RetVolHiL <- HiL_elected_vol*(HiL_return + PHiL*(1-inv)-volcost-Lcost+Ecoef*EHiL)/((1-p_same_group)*other_group_expected_return +
                                            p_same_group*(volavg*(L_return_avg + Pavg - volcost) + (1-volavg)*(L_return_avg + Pavg)))  + 
       
-      (1-p_elected_vol)*  (L_return_avg-volcost+PHiL)/(
+      (1-HiL_elected_vol)*  (L_return_avg-volcost+PHiL)/(
         (1-p_same_group)*other_group_expected_return + 
           p_same_group*((L_return_avg + P_vol_avg - volcost - Lcost - inv*P_vol_avg + Ecoef*E_vol_avg)/(grpsz-1) + 
 		  (volavg*(L_return_avg + Pavg - volcost) + (1-volavg)*(L_return_avg + Pavg))*(grpsz-2)/(grpsz-1)))
@@ -132,7 +149,9 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
       if(Lgroup=="Both")output <- c(VolBen=(RetVol-RetNoVol),VolBenHiL=c(RetVolHiL-RetNoVolHiL))
   if (!dataheavy) {
     return(output)
-}else 
+}else {
   output_list <- c(as.list(output),list(AvgRet = other_group_expected_return,LoL_effective_E=Eactual,HiL_effective_E=EHiL,Ldr_return = Ldr_return,Flwr_return=Flwr_return,NoLdr_return=NoLdr_return,Rotating_Leader_return=Rotating_Leader_return))
+  if(HiLprop>0) output_list <- c(output_list[!names(output_list) %in% c("NoLdr_return","Rotating_Leader_return")],
+  }
   return(output_list)
 }
