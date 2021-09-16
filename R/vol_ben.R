@@ -43,7 +43,7 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
                 function(x) 1/(1 + sum(dbinom(0:(NLoL[x]),NLoL[x],pvol)*(0:NLoL[x])) + sum(dbinom(0:(NHiL[x]),NHiL[x],pvolHiL)*(0:NHiL[x]))))#probability of being elected, given volunteering
   if(select.best){
 HiL_elected_vol <- sapply(1:(length(HiLprops)),
-                function(x) 1/(1 + sum(sum(dbinom(0:(NHiL[x]),NHiL[x],pvolHiL)*(0:NHiL[x]))))#Lo leaders are irrelevant here
+                function(x) 1/(1 + sum(dbinom(0:(NHiL[x]),NHiL[x],pvolHiL)*(0:NHiL[x]))))#Lo leaders are irrelevant here
 LoL_elected_vol <- sapply(1:(length(HiLprops)),
                 function(x) dbinom(0,NHiL[x],pvolHiL)/(1 + sum(dbinom(0:(NLoL[x]),NLoL[x],pvol)*(0:NLoL[x]))))# probability that none of the HiL volunteer * 1 over expected number of LoL volunteers
 
@@ -91,7 +91,7 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
   
     Rotating_Leader_return <- ((LL+inv*(total_L_avg-LL))*grpsz - total_E_avg*(Ecoef)+grpsz*Baseline + total_P_avg*(grpsz-1+inv) - Lcost)/grpsz
     Rotating_Leader_returnHiL <- (HiL_return+Ecoef*EHiL-Lcost + PHiL*inv)/grpsz + (LL+inv*(total_L_avg-LL)-total_E_avg/(grpsz-1) + Baseline + PHiL)*(grpsz-1)/grpsz
-    Rotating_Leader_returnLoL <- (LoL_return+Ecoef*E-Lcost + P*inv)/grpsz + (LL+inv*(total_L_avg-LL)-total_E_avg/(grpsz-1) + Baseline + P)*(grpsz-1)/grpsz
+    Rotating_Leader_returnLoL <- (L_return+Ecoef*E-Lcost + P*inv)/grpsz + (LL+inv*(total_L_avg-LL)-total_E_avg/(grpsz-1) + Baseline + P)*(grpsz-1)/grpsz
     
 	
 	pvolHiL <- pvolHiL_save
@@ -152,6 +152,7 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
 }else {
   output_list <- c(as.list(output),list(AvgRet = other_group_expected_return,LoL_effective_E=Eactual,HiL_effective_E=EHiL,Ldr_return = Ldr_return,Flwr_return=Flwr_return,NoLdr_return=NoLdr_return,Rotating_Leader_return=Rotating_Leader_return))
   if(HiLprop>0) output_list <- c(output_list[!names(output_list) %in% c("NoLdr_return","Rotating_Leader_return")],
+                                 list(NoLdr_returnHiL=NoLdr_returnHiL,NoLdr_returnLoL=NoLdr_returnLoL,Rotating_Leader_returnHiL=Rotating_Leader_returnHiL,Rotating_Leader_returnLoL=Rotating_Leader_returnLoL))
   }
   return(output_list)
 }

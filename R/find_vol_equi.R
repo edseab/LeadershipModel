@@ -1,6 +1,6 @@
 find_vol_equi <- function(x,func,search.all=T,returns=F,...){
   args <- as.list(unlist(x))
-  names(args) <- colnames(x)
+  names(args) <- names(x)
   args <- args[which(names(args)%in%names(formals(func)))]
   args <- lapply(args,as.numeric)
   
@@ -21,7 +21,7 @@ find_vol_equi <- function(x,func,search.all=T,returns=F,...){
   
   if(returns){
   args <- c(args,list(dataheavy=T))
-  res <- sapply(vol_eq,function(x)do.call(func,args=c(x,args))$AvgRet)
+  res <- sapply(vol_eq,function(x)do.call(func,args=c(as.list(x),args))$AvgRet)
   vol_eq <- list(vol_eq=vol_eq,returns=res)
   }
   
