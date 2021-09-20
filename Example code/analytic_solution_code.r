@@ -3,6 +3,10 @@ setwd('C:/Users/Ed/Google Drive/Backup/Work 2 UNM/R programs/LeadershipModel/out
 library(LeadershipModel)
 library(rootSolve)
 library(RColorBrewer)
+library(plotly)
+library(DiagrammeR)
+library(DiagrammeRsvg)
+
 
 # Vary returns to leadership
 plot(seq(0,1,0.1),modl(seq(0,1,0.1),0,L=2,Lavg=2,E=0,Eavg=0),
@@ -232,6 +236,7 @@ fig <- plot_ly(graph_db, x=~L,y=~P,z=~equi_volunteering, color=~class,type="scat
 								zaxis=list(title="Percent volunteers at equilibrium")))
 
 fig <- plot_ly(z=~surface) |> add_surface()
+htmlwidgets::saveWidget(partial_bundle(fig),'PxL_E2inv4.html')
 
 ff <- as.matrix(reshape(graph_db[,c("P","L","class")], idvar = "P", timevar = "L", direction = "wide"))[,-1]
 ff<-factor(ff, 
@@ -261,28 +266,28 @@ fig <- plot_ly(fulldb[selection,], x=~E,y=~inv,z=~equi_volunteering, color=~clas
 			                    yaxis=list(title="Investment (%)"),
 								zaxis=list(title="Percent volunteers at equilibrium")))
 
-graph_dbE <- create_model_df(inv=seq(0,1,0.01),E=seq(0,20,0.5),P=15,L=7,Ecoef=0.9,LL=0.1,Lcost=0.5,volcost=0.5,grpsz=5,N=100)
+graph_dbE <- create_model_df(inv=seq(0,1,0.01),E=seq(0,20,0.5),P=3,L=7,Ecoef=0.9,LL=0.1,Lcost=4,volcost=0.5,grpsz=5,N=100)
 fig <- plot_ly(graph_dbE, x=~E,y=~inv,z=~equi_volunteering, color=~class,type="scatter3d") |>
 			  layout(scene=list(xaxis=list(title="Extraction"),
 			                    yaxis=list(title="Investment (%)"),
 								zaxis=list(title="Percent volunteers at equilibrium")))
-
+htmlwidgets::saveWidget(partial_bundle(fig),'ExInv_P3L7Lc4.html')
 
 
 
 
 # Try this investment thing:
 fulldb <- follower_strat(
-                P = c(0,1,3,7,15),
-                L = c(1,3,7,15),
-				LL = c(0.1,0.4,0.9,1),
-				Ecoef = c(0.1,0.4,0.9,1),
+                P = c(0,1,3,7,12,15),
+                L = c(1,3,7,12,15),
+				Ecoef = c(0,0.1,0.4,0.9,1),
                 Lcost = c(0,0.1,0.5,1,2),
 				volcost = c(0,0.1,0.5,1,2),
                 grpsz = c(5,10),
-				increment=10000)
+				N=100,
+				increment=100000)
 # write.csv(fulldb,"optimal_payment_investment.csv", row.names=F)
-fulldb$GrpBenefitToLdr <- with(fulldb,Follower_return*(grpsz-1)+Ldr_return-No_Ldr_Return*grpsz)
+fulldb$GrpBenefitToLdr <- with(fulldb,Follower_return*(grpsz-1)+Leader_return-No_Ldr_Return*grpsz)
 fulldb$LdrNetBenefit <- with(fulldb,Leader_return-fulldb$Follower_return)
 
 ### Now same but with different leadership groups

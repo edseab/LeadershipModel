@@ -1,4 +1,4 @@
-find_vol_equi <- function(x,func,search.all=T,returns=F,...){
+find_vol_equi <- function(x,func,search.all=T,returns=F,select.max=F,...){
   args <- as.list(unlist(x))
   names(args) <- names(x)
   args <- args[which(names(args)%in%names(formals(func)))]
@@ -19,10 +19,11 @@ find_vol_equi <- function(x,func,search.all=T,returns=F,...){
   if (!0 %in% vol_eq & do.call(func,args=c(0,args))<0) vol_eq <- c(0,vol_eq)
   if (!1 %in% vol_eq & do.call(func,args=c(1,args))>0) vol_eq <- c(vol_eq,1)
   
-  if(returns){
+  if(select.max|returns){
   args <- c(args,list(dataheavy=T))
   res <- sapply(vol_eq,function(x)do.call(func,args=c(as.list(x),args))$AvgRet)
-  vol_eq <- list(vol_eq=vol_eq,returns=res)
+    if(select.max) vol_eq <- vol_eq[which.max(res)][1]
+    if(returns) vol_eq <- list(vol_eq=vol_eq,returns=res)
   }
   
   return(vol_eq)
