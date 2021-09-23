@@ -7,7 +7,7 @@ follower_strat <- function(leadership=c("homogeneous","heterogeneous"),opt.I = T
   
   if(opt.I & "inv" %in% names(args)) {
              args <- args[names(args)!="inv"]
-			 warning("While opt.I=T, investment should not be in the dataframe and will be ignored"
+			 warning("While opt.I=T, investment should not be in the dataframe and will be ignored")
    }
   db <- do.call(expand.grid,args)
  
