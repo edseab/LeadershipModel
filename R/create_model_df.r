@@ -1,9 +1,14 @@
-create_model_df <- function(leadership=c("homogeneous","heterogeneous"),increment=100,...){
+create_model_df <- function(leadership=c("homogeneous","heterogeneous"),increment=100,added = NA,...){
   leadership <- match.arg(leadership)
   args <- as.list(sys.call())
-  args <- args[!names(args) %in% c("","leadership","increment")]
+  args <- args[!names(args) %in% c("","leadership","increment","added")]
  
   fulldb <- do.call(expand.grid,args)
+ 
+ if(!is.na(added)){
+ for(i in seq_along(added)){
+ fulldb[,names(added)[i]] <- with(fulldb[i,],eval(parse(text=added[i])))
+ }}
  
   if(leadership=="homogeneous"){
     fulldb$other_equis <- fulldb$equi_volunteering <- NA
@@ -46,13 +51,13 @@ fulldb$LdrToFollowerOutcome[which(fulldb$LeaderFollowerRatio<1)] <- "Costly"
 
 # Class variable
 fulldb$class <- NA
-fulldb$class[which(fulldb$efficient==0 & fulldb$LdrToFollowerOutcome=="Beneficial" & fulldb$volunteering!="none")] <- "Leader selfishness"
-fulldb$class[which(fulldb$efficient==0 & fulldb$volunteering=="none")] <- "NoLdr_inefficient"
+fulldb$class[which(fulldb$LdrToFollowerOutcome=="Beneficial" & fulldb$Flwr_return<fulldb$NoLeader_return & fulldb$volunteering!="none")] <- "Leader exploitation"
+fulldb$class[which(fulldb$efficient==0 & fulldb$volunteering=="none")] <- "No leadership - costly to all"
 fulldb$class[which(fulldb$efficient==0 & fulldb$volunteering=="rare" & fulldb$LdrToFollowerOutcome=="Equal")] <- "Low useless leadership"
 fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none" & fulldb$LdrToFollowerOutcome=="Equal")] <- "Equal leadership"
-fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering=="none")] <- "NoLdr_costly"
-fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none"& fulldb$LdrToFollowerOutcome=="Costly")] <- "Costly Leadership"
-fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none"& fulldb$LdrToFollowerOutcome=="Beneficial")] <- "Beneficial Leadership"
+fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering=="none")] <- "No leadership - costly to leader"
+fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none"& fulldb$LdrToFollowerOutcome=="Costly")] <- "w(Leader) < w(Follower)"
+fulldb$class[which(fulldb$efficient==1 & fulldb$volunteering!="none"& fulldb$LdrToFollowerOutcome=="Beneficial")] <- "w(Leader) > w(Follower)"
 
 }
 return(fulldb)

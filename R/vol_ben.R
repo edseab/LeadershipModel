@@ -1,6 +1,6 @@
 vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100, L = 3, LL=0, P=1,
                     inv = 0.6,volcost=0.1, Lcost=0.2, E=0.5, Ecoef = 0.9, HiLprop = 0,HiL=4,PHiL= 0.5,
-					Baseline=5, dataheavy=F, select.best=F){
+					Baseline=5, dataheavy=F, select.best=F, save.RetNoVol=F){
   
   if(HiLprop==0 & select.best) warning("select.best cannot function if HiLprop==0")
   
@@ -143,7 +143,8 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
     if(HiLprop>0)RetNoVolHiL <- sum(HiLbinom*(RetNoVolHiL))
     
   } 
-  
+  if(save.RetNoVol) {return(c(RetNoVolLoL=RetNoVol,RetNoVolHil=RetNoVolHiL))
+  }else{
       if(Lgroup=="LoL") output <- c(VolBen=(RetVol-RetNoVol))
       if(Lgroup=="HiL") output <-c(VolBenHiL= (RetVolHiL-RetNoVolHiL))
       if(Lgroup=="Both")output <- c(VolBen=(RetVol-RetNoVol),VolBenHiL=c(RetVolHiL-RetNoVolHiL))
@@ -155,4 +156,4 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
                                  list(NoLdr_returnHiL=NoLdr_returnHiL,NoLdr_returnLoL=NoLdr_returnLoL,Rotating_Leader_returnHiL=Rotating_Leader_returnHiL,Rotating_Leader_returnLoL=Rotating_Leader_returnLoL))
   }
   return(output_list)
-}
+}}

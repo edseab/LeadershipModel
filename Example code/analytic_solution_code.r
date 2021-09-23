@@ -220,41 +220,39 @@ mod <- glm(any_vol ~ E + L + P + inv + Ecoef + LL + Lcost + volcost + grpsz + N,
 library(plotly)
 library(rgl)
 
-selection <- which(fulldb$E==2 & fulldb$inv==0.4 & fulldb$Ecoef==0.9 & fulldb$LL==0.4 & fulldb$Lcost==0.5 & fulldb$volcost==0.5 & fulldb$grpsz==5 & fulldb$N==100)
+selection <- which(fulldb$E==2 & fulldb$inv==0.4 & fulldb$Ecoef==0.9 & fulldb$Lcost==0.5 & fulldb$volcost==0.5 & fulldb$grpsz==5 & fulldb$N==100)
 
 ## create special db just for this graph
 
 graph_db <- create_model_df(P=seq(0,14,0.1),L=seq(0,14,0.1),E=2,
-                      inv=0.4,Ecoef=0.9,LL=0.4,
-                      Lcost=0.5,volcost=0.5,
+                      inv=0.4,Ecoef=0.9,
+                      Lcost=0.5,volcost=0.5,LL=0,
                       grpsz=5,N=100)
-
+colours <- brewer.pal(length(unique(graph_db$class
+)),"Set2")
 surface <- as.matrix(reshape(graph_db[,c("P","L","equi_volunteering")], idvar = "P", timevar = "L", direction = "wide"))[,-1]
-fig <- plot_ly(graph_db, x=~L,y=~P,z=~equi_volunteering, color=~class,type="scatter3d") |>
-			  layout(scene=list(xaxis=list(title="Leadership"),
-			                    yaxis=list(title="Individual Production"),
-								zaxis=list(title="Percent volunteers at equilibrium")))
+fig <- plot_ly(graph_db, x=~L,y=~P,z=~equi_volunteering, color=~class,colors=colours,type="scatter3d") |>
+			  layout(scene=list(xaxis=list(title="Leader multiplier L"),
+			                    yaxis=list(title="Individual Production P"),
+								zaxis=list(title="Percent volunteers at equilibrium v_hat")))
 
-fig <- plot_ly(z=~surface) |> add_surface()
 htmlwidgets::saveWidget(partial_bundle(fig),'PxL_E2inv4.html')
 
 ff <- as.matrix(reshape(graph_db[,c("P","L","class")], idvar = "P", timevar = "L", direction = "wide"))[,-1]
-ff<-factor(ff, 
-    levels=c(unique(graph_db$class)), 
-    labels=c(unique(graph_db$class)))
+ff<-factor(ff,labels=c(unique(graph_db$class)))
 	
 
 fx<-matrix(as.numeric(ff), nrow=sqrt(nrow(graph_db)))
 image(fx,
     breaks=(1:(nlevels(ff)+1))-.5,
-	col=brewer.pal(nlevels(ff),"Set1"),
-	xlab="Individual productivity",
-	ylab="Leader multiplier",
+	col=colours,
+	xlab="Individual productivity P",
+	ylab="Leader multiplier L ",
 	xaxt='n', yaxt='n')
 axis(1, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 axis(2, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 
-legend (0.2,0.9,fill=brewer.pal(nlevels(ff),"Set1"),legend=levels(ff),bty='n')
+# legend (0.2,0.9,fill=colours,legend=levels(ff),bty='n')
 
 
 ## Try again with different slices
@@ -273,8 +271,51 @@ fig <- plot_ly(graph_dbE, x=~E,y=~inv,z=~equi_volunteering, color=~class,type="s
 								zaxis=list(title="Percent volunteers at equilibrium")))
 htmlwidgets::saveWidget(partial_bundle(fig),'ExInv_P3L7Lc4.html')
 
+graph_db_noE <- create_model_df(P=seq(0,14,0.1),L=seq(0,14,0.1),E=0,
+                      inv=0.4,Ecoef=1,
+                      Lcost=0.5,volcost=0.5,LL=0,
+                      grpsz=5,N=100)
+fig <- plot_ly(graph_db_noE, x=~L,y=~P,z=~equi_volunteering, color=~class,type="scatter3d") |>
+			  layout(scene=list(xaxis=list(title="Leadership"),
+			                    yaxis=list(title="Individual Production"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
 
+htmlwidgets::saveWidget(partial_bundle(fig),'PxL_E0inv4.html')
 
+graph_db_costs <- create_model_df(Lcost=seq(0,3,0.1),L=seq(0,15,0.5),E=2,
+                      inv=0.4,Ecoef=1,
+                      volcost=0.5,P=10,LL=0,
+                      grpsz=5,N=100)
+fig <- plot_ly(graph_db_costs, x=~Lcost,y=~L,z=~equi_volunteering, color=~class,type="scatter3d") |>
+			  layout(scene=list(xaxis=list(title="Lcost"),
+			                    yaxis=list(title="L"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
+
+htmlwidgets::saveWidget(partial_bundle(fig),'CLxL_E2P10.html')
+
+graph_db_volc <- create_model_df(volcost=seq(0,2,0.1),grpsz=seq(5,30,1),E=10,
+                      inv=0.4,Ecoef=1,
+                      Lcost=0.5,L=25,P=10,LL=0,
+                      N=1000)
+surface <- as.matrix(reshape(graph_db_volc[,c("volcost","grpsz","equi_volunteering")], idvar = "volcost", timevar = "grpsz", direction = "wide"))[,-1]
+axes <- list(xaxis=list(title='Cost to candidacy Cv',ticktext = c(0,1,2),
+),
+                    yaxis=list(title='Group size n',range=c(5,50)),
+                    zaxis=list(title='Equilibrium volunteering rate v_bar'))
+fig <- plot_ly(z = ~surface, showscale = TRUE, reversescale=T,colorscale = 'Portland')
+fig <- fig |> 
+           add_surface()|>
+		   layout(scene = axis_titles )
+fig
+fx<-matrix(as.numeric(ffvolc), nrow=sqrt(nrow(graph_db)))
+image(fx,
+    breaks=(1:(nlevels(ffvolc)+1))-.5,
+	col=colours,
+	xlab="Individual productivity P",
+	ylab="Leader multiplier L ",
+	xaxt='n', yaxt='n')
+axis(1, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
+axis(2, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 
 # Try this investment thing:
 fulldb <- follower_strat(
@@ -286,7 +327,7 @@ fulldb <- follower_strat(
                 grpsz = c(5,10),
 				N=100,
 				increment=100000)
-# write.csv(fulldb,"optimal_payment_investment.csv", row.names=F)
+# write.csv(other_invest_database_NoLL,"optimal_payment_investmentNOLL.csv", row.names=F)
 fulldb$GrpBenefitToLdr <- with(fulldb,Follower_return*(grpsz-1)+Leader_return-No_Ldr_Return*grpsz)
 fulldb$LdrNetBenefit <- with(fulldb,Leader_return-fulldb$Follower_return)
 
@@ -377,3 +418,5 @@ fulldb2$LdrToFollowerOutcome[which(fulldb2$Ldr_return<fulldb2$Flwr_return)] <- "
 table(fulldb2$equi_type,fulldb2$LdrToFollowerOutcome,fulldb2$efficient)
 
  
+
+	  
