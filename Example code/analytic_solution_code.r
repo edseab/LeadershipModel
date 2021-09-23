@@ -298,15 +298,40 @@ graph_db_volc <- create_model_df(volcost=seq(0,2,0.1),grpsz=seq(5,30,1),E=10,
                       Lcost=0.5,L=25,P=10,LL=0,
                       N=1000)
 surface <- as.matrix(reshape(graph_db_volc[,c("volcost","grpsz","equi_volunteering")], idvar = "volcost", timevar = "grpsz", direction = "wide"))[,-1]
-axes <- list(xaxis=list(title='Cost to candidacy Cv',ticktext = c(0,1,2),
-),
-                    yaxis=list(title='Group size n',range=c(5,50)),
+axes <- list(yaxis=list(title='Cost to candidacy Cv', tickmode = "array",nticks=3,tickvals=c(0,10,20),ticktext=0:2),
+             xaxis=list(title='Groupsize n',
+			            tickmode = "array",
+                        ticktext = seq(5,30,5),
+						tickvals = seq(0,25,5),
+						nticks=6),
+                    zaxis=list(title='Equilibrium volunteering rate v_bar'),
+					camera=camera)
+fig <- plot_ly(z = ~surface, showscale = TRUE, reversescale=T,colorscale = 'Portland')
+fig <- fig %>% 
+           add_surface()%>%
+		   layout(scene = axes)
+fig
+htmlwidgets::saveWidget(partial_bundle(fig),'volcxn_L25P10.html')
+
+graph_db_lc <- create_model_df(Lcost=seq(0,5,0.2),Emult = seq(0,1,0.05),P=10,
+                      inv=0.4,Ecoef=1,
+                      volcost=0.5,L=18,grpsz=5,LL=0,
+                      N=1000,added=list(E='Lcost*Emult'))
+surface <- as.matrix(reshape(graph_db_lc[,c("Lcost","Emult","equi_volunteering")], idvar = "Lcost", timevar = "Emult", direction = "wide"))[,-1]
+axes <- list(yaxis=list(title='Cost of leadership CL', tickmode = "array",nticks=6,tickvals=seq(0,25,5),ticktext=0:5),
+             xaxis=list(title='Proportion of CL reimbursed to leader',
+			            tickmode = "array",
+                        ticktext = seq(0,1,0.2),
+						tickvals = seq(0,20,4),
+						nticks=6),
                     zaxis=list(title='Equilibrium volunteering rate v_bar'))
 fig <- plot_ly(z = ~surface, showscale = TRUE, reversescale=T,colorscale = 'Portland')
-fig <- fig |> 
-           add_surface()|>
-		   layout(scene = axis_titles )
+fig <- fig %>% 
+           add_surface()%>%
+		   layout(scene = axes)
 fig
+htmlwidgets::saveWidget(partial_bundle(fig),'LcxEprop_L18E5.html')
+
 fx<-matrix(as.numeric(ffvolc), nrow=sqrt(nrow(graph_db)))
 image(fx,
     breaks=(1:(nlevels(ffvolc)+1))-.5,

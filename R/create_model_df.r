@@ -7,7 +7,7 @@ create_model_df <- function(leadership=c("homogeneous","heterogeneous"),incremen
  
  if(!is.na(added)){
  for(i in seq_along(added)){
- fulldb[,names(added)[i]] <- with(fulldb[i,],eval(parse(text=added[i])))
+ fulldb[,names(added)[i]] <- eval(parse(text=paste0('with(fulldb,',added[i],')')))
  }}
  
   if(leadership=="homogeneous"){
