@@ -343,18 +343,25 @@ axis(1, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 axis(2, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 
 # Try this investment thing:
-fulldb <- follower_strat(
+optimalEinv <- follower_strat(
                 P = c(0,1,3,7,12,15),
                 L = c(1,3,7,12,15),
 				Ecoef = c(0,0.1,0.4,0.9,1),
-                Lcost = c(0,0.1,0.5,1,2),
-				volcost = c(0,0.1,0.5,1,2),
+                Lcost = c(0,0.5,1,2),
+				volcost = c(0,0.5,1,2),
                 grpsz = c(5,10),
 				N=100,
-				increment=100000)
-# write.csv(other_invest_database_NoLL,"optimal_payment_investmentNOLL.csv", row.names=F)
-fulldb$GrpBenefitToLdr <- with(fulldb,Follower_return*(grpsz-1)+Leader_return-No_Ldr_Return*grpsz)
-fulldb$LdrNetBenefit <- with(fulldb,Leader_return-fulldb$Follower_return)
+				increment=100000,opt.I=T)
+# write.csv(optimalEinv,"optimalEinv.csv", row.names=F)
+fulldb$GrpBenefitToLdr <- with(fulldb,Flwr_return*(grpsz-1)+Ldr_Return-Acephalous_Return*grpsz)
+fulldb$LdrNetBenefit <- with(fulldb,Ldr_Return-Flwr_return)
+
+
+## Show em how it works
+
+#figure 5
+plot(
+
 
 ### Now same but with different leadership groups
 

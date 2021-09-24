@@ -1,6 +1,6 @@
 vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100, L = 3, LL=0, P=1,
                     inv = 0.6,volcost=0.1, Lcost=0.2, E=0.5, Ecoef = 0.9, HiLprop = 0,HiL=4,PHiL= 0.5,
-					Baseline=5, dataheavy=F, select.best=F, save.RetNoVol=F){
+					Baseline=5, dataheavy=F, select.best=F){
   
   if(HiLprop==0 & select.best) warning("select.best cannot function if HiLprop==0")
   
@@ -9,6 +9,7 @@ vol_ben <- function(pvol,pvolHiL=0, Lgroup=c("LoL","HiL","Both"),grpsz=5, N=100,
   p_same_group <- (grpsz-1)/(N-1)
   HiLprops <- HiLprop
   HiLbinom <- 1
+  NHiL <- 0
   
   if(HiLprop>0){
     HiLprops <- (0:(grpsz-1))/(grpsz-1)
@@ -64,6 +65,9 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
 
   if(dataheavy){
     HiLVol <- HiLprop*pvolHiL/(HiLprop*pvolHiL+(1-HiLprop)*pvol)
+	Non_Ldr_return <- sum(HiLbinom*(p_no_vol*(total_P_avg + LL + Baseline) + 
+	                            (1-p_no_vol)*(HiLprops*(PHiL+LL+Baseline-volcost*pvolHiL) + (1-HiLprops)*(P+LL+Baseline-volcost*pvol))))
+
     pvolHiL_save<- pvolHiL
     pvol_save <- pvol
     p_no_vol_save <- p_no_vol
@@ -80,6 +84,7 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
       (1-HiLprop)*pvol*(1-LoL_elected_vol)*(L_return_avg + P - volcost) + 
       (1-HiLprop)*(1-pvol)*(1-p_no_vol)*(L_return_avg+P)
         ))/sum(HiLbinom*(HiLprop*pvolHiL*(1-HiL_elected_vol)+HiLprop*(1-pvolHiL)*(1-p_no_vol) + (1-HiLprop)*pvol*(1-LoL_elected_vol)+(1-HiLprop)*(1-pvol)*(1-p_no_vol)))
+
 
     total_P_avg <- (P*(1-HiLprop)+PHiL*HiLprop)
     total_L_avg <- (L*(1-HiLprop)+HiL*HiLprop)
@@ -143,17 +148,16 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
     if(HiLprop>0)RetNoVolHiL <- sum(HiLbinom*(RetNoVolHiL))
     
   } 
-  if(save.RetNoVol) {return(c(RetNoVolLoL=RetNoVol,RetNoVolHil=RetNoVolHiL))
-  }else{
+
       if(Lgroup=="LoL") output <- c(VolBen=(RetVol-RetNoVol))
       if(Lgroup=="HiL") output <-c(VolBenHiL= (RetVolHiL-RetNoVolHiL))
       if(Lgroup=="Both")output <- c(VolBen=(RetVol-RetNoVol),VolBenHiL=c(RetVolHiL-RetNoVolHiL))
   if (!dataheavy) {
     return(output)
 }else {
-  output_list <- c(as.list(output),list(AvgRet = other_group_expected_return,LoL_effective_E=Eactual,HiL_effective_E=EHiL,Ldr_return = Ldr_return,Flwr_return=Flwr_return,NoLdr_return=NoLdr_return,Rotating_Leader_return=Rotating_Leader_return))
+  output_list <- c(as.list(output),list(AvgRet = other_group_expected_return,LoL_effective_E=Eactual,HiL_effective_E=EHiL,Non_Ldr_return = Non_Ldr_return, Ldr_return = Ldr_return,Flwr_return=Flwr_return,NoLdr_return=NoLdr_return,Rotating_Leader_return=Rotating_Leader_return))
   if(HiLprop>0) output_list <- c(output_list[!names(output_list) %in% c("NoLdr_return","Rotating_Leader_return")],
                                  list(NoLdr_returnHiL=NoLdr_returnHiL,NoLdr_returnLoL=NoLdr_returnLoL,Rotating_Leader_returnHiL=Rotating_Leader_returnHiL,Rotating_Leader_returnLoL=Rotating_Leader_returnLoL))
   }
   return(output_list)
-}}
+}

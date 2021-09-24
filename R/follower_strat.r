@@ -14,33 +14,34 @@ follower_strat <- function(leadership=c("homogeneous","heterogeneous"),opt.I = T
    if(leadership=="homogeneous"){
    
 for (i in 1:nrow(db)){
-values <- db[i,colnames(fulldb) %in% names(formals(vol_ben))]
+values <- db[i,colnames(db) %in% names(formals(vol_ben))]
 if(opt.I){ 
 E_optim <- function(E){
- return(do.call(ldr_output,args=c(as.list(values),list(E=E,leadership=leadership,progress=F)))$RetNoVol)
+ return(do.call(ldr_output,args=c(as.list(values),list(E=E,leadership=leadership,progress=F)))$Non_Ldr_return)
 }
 }else{
-fulldb$expected_vol[i] <- find_vol_equi(values,vol_ben,select.max=T)
-E_optim <- function(E){do.call(vol_ben,args=c(as.list(values),list(pvol=fulldb$expected_vol[i],dataheavy=F, save.RetNoVol=T)))$RetNoVolLoL
+db$expected_vol[i] <- find_vol_equi(values,vol_ben,select.max=T)
+E_optim <- function(E)do.call(vol_ben,args=c(as.list(values),list(pvol=db$expected_vol[i],dataheavy=T)))$Non_Ldr_return
 }
 
 # Calculate optimal E_bar
-retnovols <- optimize(E_optim,c(0,30),maximum=T)
- options <- sapply(c(0,retnovols$maximum,30),E_optim)
-best_payment <-as.numeric(unlist(c(0,retnovols,30)[which.max(options)]))
+nonldrs <- optimize(E_optim,c(0,30),maximum=T)
+ options <- sapply(c(0,nonldrs$maximum,30),E_optim)
+best_payment <-as.numeric(unlist(c(0,nonldrs,30)[which.max(options)]))
 
 if(opt.I){ 
 results <- do.call(ldr_output,args=c(as.list(values),list(E=best_payment,leadership=leadership,progress=F)))
+db$expected_vol[i] <- results$expected_vol
 }else{
-results <-do.call(vol_ben,args=c(as.list(values),list(E=best_payment,pvol=fulldb$expected_vol[i],dataheavy=T)))
+results <-do.call(vol_ben,args=c(as.list(values),list(E=best_payment,pvol=db$expected_vol[i],dataheavy=T)))
 }
 
-db$expected_vol[i] <- fulldb$expected_vol[i]
 db$Leader_payment[i] <- best_payment
 if(opt.I) db$Leader_inv[i] <- results$expected_inv
+db$Non_Ldr_return <- results$Non_Ldr_return
 db$Ldr_Return[i] <- results$Ldr_Return
 db$Flwr_return[i] <- results$Flwr_return
-db$No_Ldr_Return[i] <- results$No_Ldr_Return
+db$Acephalous_Return[i] <- results$Acephalous_Return
 
 
 progress(i,nrow(db),increment=increment)

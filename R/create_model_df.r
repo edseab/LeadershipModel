@@ -1,7 +1,7 @@
 create_model_df <- function(leadership=c("homogeneous","heterogeneous"),increment=100,added = NA,...){
   leadership <- match.arg(leadership)
   args <- as.list(sys.call())
-  args <- args[!names(args) %in% c("","leadership","increment","added")]
+  args <- args[!names(args) %in% c("","leadership","increment","added","save.RetNoVol")]
  
   fulldb <- do.call(expand.grid,args)
  
