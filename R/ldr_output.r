@@ -18,10 +18,10 @@ ldr_reward_fnc <- function(inv){
 fulldb$expected_inv[i] <- ifelse(sum(inv_equis)==0,0,sum(inv_equis*seq(0,1,0.01))/sum(inv_equis))
 fulldb$expected_vol[i] <- sum(inv_equis)/101
 values <- fulldb[i,colnames(fulldb) %in% names(formals(vol_ben))]
-fulldb$Ldr_return[i] <- with(fulldb,baseline + P*(1-inv) + LL+(L-LL)*inv + E*(Ecoef-1/grpsz) - Lcost - volcost)
-fulldb$Flwr_return[i] <- with(fulldb,baseline +P + LL+(L-LL)*inv - E/grpsz - expected_vol*volcost)
-fulldb$Acephalous_Return[i] <- with(fulldb,baseline + P + LL)
-fulldb$Non_Ldr_return[i] <- with(fulldb[i,], ((1-expected_vol)^grpsz)*Acephalous_Return + (1-((1-expected_vol)^grpsz))*Flwr_return)
+fulldb$Ldr_return[i] <- with(fulldb[i,],baseline + P*(1-expected_inv) + LL+(L-LL)*expected_inv + E*(Ecoef-1/grpsz) - Lcost - volcost)
+fulldb$Flwr_return[i] <- with(fulldb[i,],baseline +P + LL+(L-LL)*expected_inv - E/grpsz - expected_vol*volcost)
+fulldb$Acephalous_return[i] <- with(fulldb[i,],baseline + P + LL)
+fulldb$Non_Ldr_return[i] <- with(fulldb[i,],(baseline + P + LL)*((1-expected_vol)^grpsz) + (1-((1-expected_vol)^grpsz))*Flwr_return)
  if(progress) progress(i,nrow(fulldb),increment=increment)
  }
  return(fulldb)

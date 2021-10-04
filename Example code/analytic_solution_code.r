@@ -343,6 +343,17 @@ axis(1, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 axis(2, at=seq(0,1,1/14),labels=c(0,'','','',4,'','',7,'','',10,'','','',14))
 
 # Try this investment thing:
+optimalE <- follower_strat(
+                P = c(0,1,3,7,12,15),
+                L = c(1,3,7,12,15),
+				Ecoef = c(0,0.1,0.4,0.9,1),
+				inv=c(0.1,0.3,0.6,0.9),
+                Lcost = c(0,0.5,1,2),
+				volcost = c(0,0.5,1,2),
+                grpsz = c(5,10),
+				N=100,
+				increment=100000,opt.I=F)
+# write.csv(optimalE,"optimalE.csv", row.names=F)
 optimalEinv <- follower_strat(
                 P = c(0,1,3,7,12,15),
                 L = c(1,3,7,12,15),
@@ -353,15 +364,102 @@ optimalEinv <- follower_strat(
 				N=100,
 				increment=100000,opt.I=T)
 # write.csv(optimalEinv,"optimalEinv.csv", row.names=F)
-fulldb$GrpBenefitToLdr <- with(fulldb,Flwr_return*(grpsz-1)+Ldr_Return-Acephalous_Return*grpsz)
-fulldb$LdrNetBenefit <- with(fulldb,Ldr_Return-Flwr_return)
+optimalE$GrpBenefitToLdr <- with(optimalE,Flwr_return*(grpsz-1)+Ldr_return-Acephalous_return*grpsz)
+optimalE$LdrNetBenefit <- with(optimalE,Ldr_return-Flwr_return)
+optimalE$LFReturnRatio <- with(optimalE,Ldr_return/Flwr_return)
+optimalE$LFReturnRatio[abs(optimalE$LdrNetBenefit)<10e-3] <- 1
+optimalE$LdrNetBenefit[abs(optimalE$LdrNetBenefit)<10e-3] <- 0
+
+optimalE$volunteering <- cut(optimalE$expected_vol, breaks=c(-1,0,0.333,0.667,0.99999,2), labels=c("none","rare","common","most","all"),right=T)
+
+#check this shit
+selection <- which(optimalE$Ecoef==1 & optimalE$inv==0.7 & optimalE$Lcost==2 & optimalE$volcost==1 & optimalE$grpsz==5)
+
+fig <- plot_ly(optimalE[selection,], x=~P,y=~L,z=~expected_vol,color=~LFReturnRatio ,type="scatter3d") |>
+			  layout(scene=list(xaxis=list(title="P"),
+			                    yaxis=list(title="L"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
+
+
+graph_optimalE <- follower_strat(L=seq(1,15,0.1),P = seq(1,15,0.1),
+                      inv=0.7,Ecoef=1,
+                      volcost=1,Lcost=2,grpsz=5,LL=0,
+                      N=100,opt.I=F)
+graph_optimalE$LFReturnRatio <- with(graph_optimalE,Ldr_return/Flwr_return)
+graph_optimalE$LFReturnRatioCats <- as.factor(cut(graph_optimalE$LFReturnRatio,breaks=c(0,0.5,0.8,0.999,1,1.2,1.5,5)))
+fig <- plot_ly(graph_optimalE, x=~L,y=~P,z=~expected_vol,type="scatter3d",
+                              color = ~LFReturnRatioCats) |>
+			  layout(scene=list(xaxis=list(title="L"),
+			                    yaxis=list(title="P"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
+
+fig
+htmlwidgets::saveWidget(partial_bundle(fig),'optimE_LxPinv6lc7vc2ec1n10.html')
+
+
+graph_optimalEcoef <- follower_strat(L=15,P = 10,
+                      inv=seq(0.1,1,0.01),Ecoef=seq(0.1,1,0.02),
+                      volcost=2,Lcost=5,grpsz=5,LL=0,
+                      N=10000,opt.I=F)
+graph_optimalEcoef$LFReturnRatio <- with(graph_optimalEcoef,Ldr_return/Flwr_return)
+graph_optimalEcoef$LFReturnRatioCats <- as.factor(cut(graph_optimalEcoef$LFReturnRatio,breaks=c(0,0.5,0.8,0.999,1,1.2,1.5,5)))
+fig <- plot_ly(graph_optimalEcoef, x=~inv,y=~Ecoef,z=~expected_vol,type="scatter3d",
+                              color = ~LFReturnRatioCats) |>
+			  layout(scene=list(xaxis=list(title="inv"),
+			                    yaxis=list(title="Ecoef"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
+
+fig
+htmlwidgets::saveWidget(partial_bundle(fig),'optimEcoef*inv_L10.html')
+
+
+
+optimalE5247 Ecoef=1, inv=0.6, Lcost=0,volcost=1,grpsz=5,N=100
+
+
+## Now with optimalEinv
+optimalEinv$GrpBenefitToLdr <- with(optimalEinv,Flwr_return*(grpsz-1)+Ldr_return-Acephalous_return*grpsz)
+optimalEinv$LdrNetBenefit <- with(optimalEinv,Ldr_return-Flwr_return)
+optimalEinv$LFReturnRatio <- with(optimalEinv,Ldr_return/Flwr_return)
+optimalEinv$LFReturnRatio[abs(optimalEinv$LdrNetBenefit)<10e-3] <- 1
+optimalEinv$LdrNetBenefit[abs(optimalEinv$LdrNetBenefit)<10e-3] <- 0
+
+optimalEinv$volunteering <- cut(optimalEinv$expected_vol, breaks=c(-1,0,0.333,0.667,0.99999,2), labels=c("none","rare","common","most","all"),right=T)
+
+selection <- which(optimalEinv$Ecoef==1 &  optimalEinv$Lcost==0 & optimalEinv$volcost==0 & optimalEinv$grpsz==5)
+
+fig <- plot_ly(optimalEinv[selection,], x=~P,y=~L,z=~expected_vol ,type="scatter3d") |>
+			  layout(scene=list(xaxis=list(title="P"),
+			                    yaxis=list(title="L"),
+								zaxis=list(title="Percent volunteers at equilibrium")))
+
+fig
+
+
+
+
+
+
+
 
 
 ## Show em how it works
 
 #figure 5
-plot(
+invdb <- create_model_df(inv=seq(0,1,0.01),E=3,P=2,L=6,Ecoef=1,LL=0,Lcost=3,volcost=0.5,grpsz=5,N=100)
+Istar <- sum(invdb$inv*invdb$equi_volunteering)/sum(invdb$equi_volunteering)
+VforIstar <- create_model_df(inv=Istar,E=3,P=2,L=6,Ecoef=1,LL=0,Lcost=3,volcost=0.5,grpsz=5,N=100)$equi_volunteering
+Vstar <- sum(invdb$equi_volunteering)/nrow(invdb)
+Imin <- invdb$inv[which.max(invdb$inv[invdb$equi_volunteering>0])]
+plot(invdb$inv,invdb$equi_volunteering, type='l',lwd=2,
+                  ylim=c(0,1),ylab='Equilibrium volunteering vhat',
+				  xlab='Investment rate I')
 
+polyCurve(invdb$inv,invdb$equi_volunteering, col= 'purple')
+segments(Istar,0,Istar,VforIstar,from=Imin,lwd=3)
+lines(invdb$inv,invdb$equi_volunteering,lwd=2)
+text(Istar+0.01,0.19,"I*",cex=1.5)
+text(0.9,0.10,"v*",cex=1.5)
 
 ### Now same but with different leadership groups
 
@@ -377,77 +475,14 @@ HiLspace <- c(1.2,2)
 HiLPspace <- c(0.7,1,2)
 
 # Create the database
-fulldb2 <- expand.grid(E=Espace,L=Lspace,P=Pspace,
+difflead <- create_model_df(leadership="hetero",E=Espace,L=Lspace,P=Pspace,
                        inv=invspace,Ecoef=Ecoefspace,LL=LLspace,
                        Lcost=Lcostspace,volcost=volcostspace,
                        grpsz=grpszspace,N=100,HiLprop = HiLpropspace,HiLmulti = HiLspace,HiLPmulti = HiLPspace)
 
-fulldb2$HiL <- fulldb2$L*fulldb2$HiLmulti
-fulldb2$PHiL <- fulldb2$P*fulldb2$HiLPmulti
-
-fulldb2$HiLvol <- fulldb2$LoLvol <-NA
-
 # Now run the code
-for(i in 1:nrow(fulldb2)){
-  LoLvol <- 1e-8
-  HiLvol <- 0
-  cycle <- 1
-  while(HiLvol!=1 & LoLvol!=0 & cycle <20){
-    HiLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,Lgroup="HiL",select.best=T,search.all=F)
-    if(length(HiLvol)>1) HiLvol <- HiLvol[which.max(find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,select.best=T,returns=T,search.all=F)$returns)]
-    LoLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,select.best=T,search.all=F,Lgroup="LoL")
-    if(length(LoLvol)>1) LoLvol <- LoLvol[which.max(find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,select.best=T,returns=T,search.all=F)$returns)]
-    cycle <- cycle+1
-  }
-  
-  # 1 last cycle for good luck
-  HiLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,select.best=T,search.all=F,Lgroup="HiL")
-  if(length(HiLvol)>1) HiLvol <- HiLvol[which.max(find_vol_equi(fulldb2[i,],vol_ben,pvol=LoLvol,select.best=T,returns=T,search.all=F)$returns)]
-  LoLvol <- find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,select.best=T,search.all=F,Lgroup="LoL")
-  if(length(LoLvol)>1) LoLvol <- LoLvol[which.max(find_vol_equi(fulldb2[i,],vol_ben,pvolHiL=HiLvol,select.best=T,returns=T,search.all=F)$returns)]
-  
-  fulldb2$HiLvol[i] <- HiLvol
-  fulldb2$LoLvol[i] <- LoLvol
-  
-  progress(i,nrow(fulldb2), increment=10000)
-}
 
-fulldb2$equi_type <- NA
-fulldb2$equi_type[which(fulldb2$HiLvol==1)] <- "All_Hi"
-fulldb2$equi_type[which(fulldb2$LoLvol==0)] <- "No_Lo"
-fulldb2$equi_type[which(fulldb2$HiLvol==1 & fulldb2$LoLvol==1)] <- "Everyone"
-fulldb2$equi_type[which(fulldb2$HiLvol==0 & fulldb2$LoLvol==0)] <- "No-one"
-fulldb2$equi_type[which(fulldb2$HiLvol<1 & fulldb2$LoLvol>0)] <- "multiple_equi"
-fulldb2$equi_type[which((fulldb2$LoLvol==1 & fulldb2$HiLvol<1)|(fulldb2$HiLvol==0 & fulldb2$LoLvol>0))] <-"Inverted"
-
-fulldb2$equi_type[is.na(fulldb2$equi_type)] <- "Unaccounted"
-
-Baseline <- 5 # change if needed
-
-for (i in 1:nrow(fulldb2)){
-  
-  res <- with(fulldb2[i,],vol_ben(pvol=as.numeric(LoLvol),pvolHiL=as.numeric(HiLvol),grpsz=grpsz,L=L,LL=LL,P=P,HiL=HiL,PHiL=PHiL,HiLprop=HiLprop, inv=inv,Lcost=Lcost,E=E,Ecoef=Ecoef,volcost=volcost,N=N,select.best=T,dataheavy=T))
-  
-  fulldb2$HiL_effective_E[i] <- res$HiL_effective_E
-  fulldb2$LoL_effective_E[i] <- res$LoL_effective_E
-  
-  fulldb2$Ldr_return[i] <- res$Ldr_return
-  fulldb2$Flwr_return[i] <- res$Flwr_return
-  fulldb2$NoLdr_returnHiL[i] <- res$NoLdr_returnHiL
-  fulldb2$NoLdr_returnLoL[i] <- res$NoLdr_returnHiL
-
-  fulldb2$Rotating_Leader_returnHiL[i] <- res$Rotating_Leader_returnHiL
-  fulldb2$Rotating_Leader_returnLoL[i] <- res$Rotating_Leader_returnLoL
-  progress(i, nrow(fulldb2), increment=10000)
-}
-fulldb2$Leadered_grp_return <- fulldb2$Ldr_return+fulldb2$Flwr_return*(fulldb2$grpsz-1)
-fulldb2$NoLdr_grp_return <- (fulldb2$NoLdr_returnHiL*fulldb2$HiLprop + fulldb2$NoLdr_returnLoL*(1-fulldb2$HiLprop))*fulldb2$grpsz
-fulldb2$efficient <- as.numeric(fulldb2$Leadered_grp_return>fulldb2$NoLdr_grp_return)
-fulldb2$LdrToFollowerOutcome <- "Equal"
-fulldb2$LdrToFollowerOutcome[which(fulldb2$Ldr_return>fulldb2$Flwr_return)] <- "Beneficial"
-fulldb2$LdrToFollowerOutcome[which(fulldb2$Ldr_return<fulldb2$Flwr_return)] <- "Costly"
-
-table(fulldb2$equi_type,fulldb2$LdrToFollowerOutcome,fulldb2$efficient)
+table(difflead$equi_type,difflead$LdrToFollowerOutcome,difflead$efficient)
 
  
 
