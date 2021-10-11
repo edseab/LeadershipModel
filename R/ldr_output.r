@@ -21,7 +21,7 @@ values <- fulldb[i,colnames(fulldb) %in% names(formals(vol_ben))]
 fulldb$Ldr_return[i] <- with(fulldb[i,],baseline + P*(1-expected_inv) + LL+(L-LL)*expected_inv + E*(Ecoef-1/grpsz) - Lcost - volcost)
 fulldb$Flwr_return[i] <- with(fulldb[i,],baseline +P + LL+(L-LL)*expected_inv - E/grpsz - expected_vol*volcost)
 fulldb$Acephalous_return[i] <- with(fulldb[i,],baseline + P + LL)
-fulldb$Non_Ldr_return[i] <- with(fulldb[i,],(baseline + P + LL)*((1-expected_vol)^grpsz) + (1-((1-expected_vol)^grpsz))*Flwr_return)
+fulldb$RetNoVol[i] <- with(fulldb[i,],(baseline + P + LL)*((1-expected_vol)^(grpsz-1)) + (1-((1-expected_vol)^(grpsz-1)))*Flwr_return)
  if(progress) progress(i,nrow(fulldb),increment=increment)
  }
  return(fulldb)

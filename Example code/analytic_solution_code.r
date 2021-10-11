@@ -6,6 +6,7 @@ library(RColorBrewer)
 library(plotly)
 library(DiagrammeR)
 library(DiagrammeRsvg)
+library(rsvg)
 
 
 # Vary returns to leadership
@@ -354,15 +355,7 @@ optimalE <- follower_strat(
 				N=100,
 				increment=100000,opt.I=F)
 # write.csv(optimalE,"optimalE.csv", row.names=F)
-optimalEinv <- follower_strat(
-                P = c(0,1,3,7,12,15),
-                L = c(1,3,7,12,15),
-				Ecoef = c(0,0.1,0.4,0.9,1),
-                Lcost = c(0,0.5,1,2),
-				volcost = c(0,0.5,1,2),
-                grpsz = c(5,10),
-				N=100,
-				increment=100000,opt.I=T)
+
 # write.csv(optimalEinv,"optimalEinv.csv", row.names=F)
 optimalE$GrpBenefitToLdr <- with(optimalE,Flwr_return*(grpsz-1)+Ldr_return-Acephalous_return*grpsz)
 optimalE$LdrNetBenefit <- with(optimalE,Ldr_return-Flwr_return)

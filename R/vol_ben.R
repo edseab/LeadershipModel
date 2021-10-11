@@ -157,7 +157,7 @@ LoL_elected_vol <- sapply(1:(length(HiLprops)),
   if (!dataheavy) {
     return(output)
 }else {
-  output_list <- c(as.list(output),list(AvgRet = other_group_expected_return,LoL_effective_E=Eactual,HiL_effective_E=EHiL,Non_Ldr_return = Non_Ldr_return, Ldr_return = Ldr_return,Flwr_return=Flwr_return,Acephalous_return=NoLdr_return,Rotating_Leader_return=Rotating_Leader_return))
+  output_list <- c(as.list(output),list(AvgRet = other_group_expected_return,LoL_effective_E=Eactual,HiL_effective_E=EHiL,RetNoVol = RetNoVol, Ldr_return = Ldr_return,Flwr_return=Flwr_return,Acephalous_return=NoLdr_return,Rotating_Leader_return=Rotating_Leader_return))
   if(HiLprop>0) output_list <- c(output_list[!names(output_list) %in% c("NoLdr_return","Rotating_Leader_return")],
                                  list(Acephalous_returnHiL=NoLdr_returnHiL,Acephalous_returnLoL=NoLdr_returnLoL,Rotating_Leader_returnHiL=Rotating_Leader_returnHiL,Rotating_Leader_returnLoL=Rotating_Leader_returnLoL))
   }
