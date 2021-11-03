@@ -1,0 +1,158 @@
+latex equations:
+
+
+ 
+\begin{align*}
+(1)w(Leader) = L*I + E*(C_E-1/n) + C_P*(1-I) - C_L - C_V
+
+(2)w(Loser) = L*I - E/n + C_P - C_V
+
+(3)w(Follower) = L*I - E/n + C_P
+
+(4)w(Acephalous) = C_P
+
+(5) P(\textit{Elected}|V,v) = 1/(1 + v*(n-1))
+ 
+
+(6) P(\textit{Acephalous}|\overline{V},v) = (1-v)^{(n-1)}
+
+(7)\overline{w}(v) =  v * (P(\textit{Elected}|V,v) * w(Leader) + (1-P(\textit{Elected}|V,v)) * w(Loser))
+       + (1-v)*(P(\textit{Acephalous}|\overline{V},v)*w(Acephalous) + (1-P(\textit{Acephalous}|\overline{V},v))*(Follower))
+
+(8)w(V|v) = P(\textit{Elected}|V,v)*w(Leader)+ (1-P(\textit{Elected}|V,v))*w(Loser)
+
+(9)w(\overline{V}|v) = P(\textit{Acephalous}|\overline{V},v)*w(Acephalous) + (1-P(\textit{Acephalous}|\overline{V},v))*w(Follower))
+
+(10)P(\textit{Elected}|V,v)*[w(Leader)- w(Loser)] - C_V = P(\textit{Acephalous}|\overline{V},v)*(w(Acephalous)-w(Follower))
+
+(11)\hat{v} = \frac{w(Leader)-w(Follower)}{C_V*(1+\hat{v}*(n-1))}
+
+(12)\frac{E*C_E - C_P*I - C_F}{(1+\hat{v}*(n-1))} - C_V= (\frac{E}{n} - L*I)*(1-\hat{v})^{(n-1)}
+
+(13) \[E*\frac{C_E*n-1}{n} - I*(C_P-L) - C_F - C_V = 0
+
+(14) \[E*C_E - I*C_P - C_F =  n*C_V
+
+(15) \frac{dw(\overline{V})}{dE}=\frac{(1-\hat{v})^{n-1}-1}{n}-\frac{\partial \hat{v}}{\partial E}*(\frac{E}{n}-L*I)*(n-1)*(1-\hat{v})^{n-2}=0
+
+(16) \frac{C_E}{1+\hat{v}*(n-1)} + \frac{\partial \hat{v}}{\partial E} *\frac{(E*C_E-P*I-C_F)*(n-1)}{(1+\hat{v}*(n-1))^2}=\frac{(1-\hat{v})^{n-1}}{n} + \frac{\partial \hat{v}}{\partial E}*(L*I-\frac{E}{n})*(n-1)*(1-\hat{v})^{n-2}
+
+(17) \frac{E^**C_E - I*C_P-C_F}{E^*-L*I*n} = \frac{n*(C_E-\frac{1+v*(n-1)}{n})*(1-\hat{v})^{n-2}*(1+\hat{v}*(n-1))^2}{(1-\hat{v})^{n-1}-1}
+
+(18) \[\frac{dw(\overline{V})}{dE}=\frac{(1-v)^{n-1}}{n}-\frac{\partial \hat{v}}{\partial E}*(\frac{E}{n}-L*I)*(n-1)*(1-\hat{v})^{n-2}=0
+F(E|L,I,C_P,C_V,C_F,n) = (1-(1-\hat{v})^{n-1})*(L*I-\frac{E}{n}-\hat{v}*C_V)
+
+(19) \[C_V*\frac{\partial \hat{v}}{\partial E}*(1-(1- \hat{v})^{n-1})+(L*I-E/n +\hat{v}*Cv)*\frac{\partial \hat{v}}{\partial E}*-v*(n-1)*(1-v)^{n-2}*-(1-v)^{n-1}=0
+
+g <- function(v,n=5)(1+v*(n-1))*(1-v)^(n-1)
+
+\G(v) 
+\[E*d – C_P*I – C_F – C_V*(1+v*(n-1)) = (1+v(n-1))*(1-v)^{(n-1)}
+
+
+\[w(Leader) = w(Acephalous)
+
+
+
+
+ \[ I\mbox{*} = \int_{0}^{1}I*\hat{v}dI
+
+ \[ v\mbox{*} = \int_{0}^{1}\hat{v}dI
+\end{align*}
+
+grpsz <- 10
+v <- seq(0,1,0.01)
+pA_Vbar <- (1-v)^(grpsz-1) # probability of Acephalous given no vol
+pL_V <- sapply(v,function(x)1/(1 + sum(dbinom(0:(grpsz-1),(grpsz-1),x)*(0:(grpsz-1)))))
+plot(v,pA_Vbar,type="l")
+lines(v,pL_V, lty=3)
+ ### Flowchart
+ 
+ grViz("digraph flowchart {
+        # node definitions with substituted label text
+        node [fontname = Helvetica, shape = rectangle]        
+        tab1 [label = <
+                   <b>Group</b>
+                   <br ALIGN = 'LEFT' /> 
+				   <br/>
+                     @@1-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab2 [label = <
+                   <b>Volunteer V</b>
+                   <br ALIGN = 'LEFT' /> 
+				   <br/>
+                     @@2-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab3 [label = <
+                   <b>Abstain VBAR</b>
+                   <br ALIGN = 'LEFT' /> 
+				   <br/>
+                     @@3-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab4 [label = <
+		           <b>Leader</b>
+				   <br ALIGN = 'LEFT' /> 
+				   <br/>
+                     @@4-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab5 [label = <
+		           <b>Losers</b>
+				   <br ALIGN = 'CENTER' /> 
+				   <br/>
+                     @@5-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab6 [label = <
+		           <b>Acephalous</b>
+				   <br ALIGN = 'CENTER' /> 
+				   <br/>
+                     @@6-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab7 [label = <
+		           <b>Followers</b>
+				   <br ALIGN = 'LEFT' /> 
+				   <br/>
+                     @@7-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab8 [label = <
+		           <b>Acephalous</b>
+				   <br ALIGN = 'LEFT' /> 
+				   <br/>
+                     @@8-1
+                   <br ALIGN = 'CENTER' /> 
+                  >]
+        tab9 [label = '@@9']
+        tab10 [label = '@@10']
+        tab11 [label = '@@11']
+		
+        # edge definitions with the node IDs
+        tab1 -> tab2-> tab4 -> tab11;
+		tab2 -> tab5 -> tab10;
+		tab1 -> tab3 -> tab6 -> tab9;
+		tab3 -> tab7 ->tab8;
+      }
+      [1]: paste0('size = n')
+      [2]: paste0('P(V) = v')
+      [3]: paste0('P(VBAR) = 1-v')
+	  [4]: paste0('P(Elected|V)=1/(1+v*(n-1))') 
+	  [5]: paste0('1-P(Elected|V)')
+	  [6]: paste0('P(Acephalous|VBAR) = (1-v)^(n-1)')
+	  [7]: paste0('1-P(Acephalous|VBAR)')
+	  [8]: paste0('W(Follower) = Cp + L*I - E/n')
+	  [9]: paste0('W(Acephalous) = Cp')
+	  [10]: paste0('W(Loser) = Cp + L*I - E/n - Cv')
+	  [11]: paste0('W(Leader) = Cp*(1-I) + L*I + E*(Ce-1/n) - Cv - Cf')
+	  
+      ") |> export_svg() |>
+  charToRaw() |> 
+  rsvg_png("./Model_description.png", height = 700)
+
+print("STROBE diagrams created")
+
+	  

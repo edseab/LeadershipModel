@@ -355,13 +355,21 @@ optimalE <- follower_strat(
 				N=100,
 				increment=100000,opt.I=F)
 # write.csv(optimalE,"optimalE.csv", row.names=F)
-
+optimalEinv <- follower_strat(
+                P = c(0,1,3,7,12,15),
+                L = c(1,3,7,12,15),
+				Ecoef = c(0,0.1,0.4,0.9,1),
+                Lcost = c(0,0.5,1,2),
+				volcost = c(0,0.5,1,2),
+                grpsz = c(5,10),
+				N=100,
+				increment=100000,opt.I=T)
 # write.csv(optimalEinv,"optimalEinv.csv", row.names=F)
 optimalE$GrpBenefitToLdr <- with(optimalE,Flwr_return*(grpsz-1)+Ldr_return-Acephalous_return*grpsz)
 optimalE$LdrNetBenefit <- with(optimalE,Ldr_return-Flwr_return)
 optimalE$LFReturnRatio <- with(optimalE,Ldr_return/Flwr_return)
-optimalE$LFReturnRatio[abs(optimalE$LdrNetBenefit)<10e-3] <- 1
-optimalE$LdrNetBenefit[abs(optimalE$LdrNetBenefit)<10e-3] <- 0
+optimalE$LFReturnRatio[abs(optimalE$wLeader-wFollower)<1e-3] <- 1
+optimalE$LdrNetBenefit[abs(optimalE$LdrNetBenefit)<1e-3] <- 0
 
 optimalE$volunteering <- cut(optimalE$expected_vol, breaks=c(-1,0,0.333,0.667,0.99999,2), labels=c("none","rare","common","most","all"),right=T)
 
@@ -374,12 +382,14 @@ fig <- plot_ly(optimalE[selection,], x=~P,y=~L,z=~expected_vol,color=~LFReturnRa
 								zaxis=list(title="Percent volunteers at equilibrium")))
 
 
-graph_optimalE <- follower_strat(L=seq(1,15,0.1),P = seq(1,15,0.1),
+graph_optimalE <- follower_strat(L=seq(1,15,0.01),P = 15,
                       inv=0.7,Ecoef=1,
                       volcost=1,Lcost=2,grpsz=5,LL=0,
                       N=100,opt.I=F)
 graph_optimalE$LFReturnRatio <- with(graph_optimalE,Ldr_return/Flwr_return)
 graph_optimalE$LFReturnRatioCats <- as.factor(cut(graph_optimalE$LFReturnRatio,breaks=c(0,0.5,0.8,0.999,1,1.2,1.5,5)))
+plot(expected_vol~L,data=graph_optimalE,type='l')
+
 fig <- plot_ly(graph_optimalE, x=~L,y=~P,z=~expected_vol,type="scatter3d",
                               color = ~LFReturnRatioCats) |>
 			  layout(scene=list(xaxis=list(title="L"),
